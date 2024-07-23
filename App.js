@@ -11,8 +11,8 @@ import { AppRegistry } from "react-native";
 import { name as appName } from "./app.json";
 import Homemaps from "./src/screen/RealState/Home";
 import MenuButton from "./src/screen/RealState/Menu";
-import Add from "./src/screen/RealState/Addproyect";
-import Addproyect from "./src/screen/RealState/Addproyect";
+import Add from "./src/screen/RealState/Addproject";
+import Addproject from "./src/screen/RealState/Addproject";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,7 +33,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={Homemaps} />
-        <Stack.Screen name="Add" component={Addproyect} />
+        <Stack.Screen name="Add" component={Addproject} />
         <Stack.Screen name="CRUD" component={CRUD} />
         <Stack.Screen name="DeleteP" component={DeleteP} />
         <Stack.Screen name="UpdateProp" component={UpdateProp} />
