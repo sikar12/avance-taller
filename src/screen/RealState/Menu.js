@@ -24,8 +24,9 @@ const MenuButton = () => {
       <TouchableOpacity onPress={toggleMenu} style={styles.button}>
         <View style={styles.iconContainer}>
           <Image
-            source={require("../../../assets/favicon.png")}
+            source={require("../../../assets/Perfil.png")}
             style={styles.profileIcon}
+            resizeMode="stretch"
           />
         </View>
       </TouchableOpacity>
@@ -40,7 +41,7 @@ const MenuButton = () => {
           <View style={styles.menu}>
             <View style={styles.profileContainer}>
               <Image
-                source={require("../../../assets/favicon.png")}
+                source={require("../../../assets/Perfil.png")}
                 style={styles.profile}
               />
               <Text style={styles.titulo}>11.111.111-1</Text>
@@ -72,8 +73,8 @@ const { width, height } = Dimensions.get("window");
 const styles = StyleSheet.create({
   button: {
     position: "absolute",
-    top: 40,
-    right: 10,
+    top: 46,
+    left: 327,
     padding: 10,
     backgroundColor: "#D7DBDD",
     borderRadius: 50,
@@ -88,25 +89,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
   profileIcon: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 0,
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
   },
   menu: {
-    width: "100%",
+    width: 300, // Ancho fijo para el cuadrado
+    height: 600,
+    // Alto fijo para el cuadrado
+    position: "absolute",
+    left: 50,
     backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
+    borderRadius: 20, // Bordes redondeados para el cuadrado
+    padding: 20, // Espaciado interno
+    justifyContent: "center", // Centra el contenido verticalmente dentro del cuadrado
+    alignItems: "center", // Centra el contenido horizontalmente dentro del cuadrado
   },
   profileContainer: {
     alignItems: "center",
@@ -137,6 +144,15 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     marginBottom: 10,
     borderRadius: 10,
+  },
+  modlastayle: {
+    width: width * 0.8, // 80% del ancho de la pantalla
+    height: width * 0.8, // Hace el modal cuadrado, ajusta según necesidad
+    backgroundColor: "#FFF", // Fondo blanco para el modal
+    borderRadius: 20, // Bordes redondeados
+    padding: 20, // Espaciado interno
+    justifyContent: "center", // Centra el contenido verticalmente dentro del modal
+    alignItems: "center", // Centra el contenido horizontalmente dentro del modal
   },
 });
 
