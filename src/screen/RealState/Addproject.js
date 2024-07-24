@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { ScrollView, View, TouchableOpacity, Text, Image } from "react-native";
+import {
+  ScrollView,
+  View,
+  TouchableOpacity,
+  Text,
+  Image,
+  ImageBackground,
+} from "react-native";
 import { addDoc, collection } from "firebase/firestore";
 import { database } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
@@ -48,67 +55,76 @@ const AddProject = ({ navigation }) => {
   );
 
   const renderPropertyTypeOptions = () => (
-    <View style={CommonStyles.container}>
-      <Text style={CommonStyles.header}>Selecciona el tipo de proyecto </Text>
-
-      <TouchableOpacity
-        style={styles.container}
-        onPress={() => navigation.navigate("Home")}
+    <View>
+      {/* ----------------------------------------- */}
+      <ImageBackground
+        source={require("../../../assets/images/Group.png")}
+        style={styles.backgorundImage}
       >
-        <Image
-          source={require("../../../assets/images/volver.png")}
-          style={styles.image}
-        />
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.homebutton}
+          onPress={() => navigation.navigate("Home")}
+        ></TouchableOpacity>
 
-      <View style={CommonStyles.button}>
-        {renderOptionButton(
-          "Añadir Departamento",
-          "department",
-          selectedPropertyType,
-          setSelectedPropertyType
-        )}
-      </View>
-      <View style={CommonStyles.button}>
-        {renderOptionButton(
-          "Añadir Casa",
-          "house",
-          selectedPropertyType,
-          setSelectedPropertyType
-        )}
-      </View>
-      <View style={CommonStyles.button}>
-        {renderOptionButton(
-          "Añadir Parcela",
-          "plot",
-          selectedPropertyType,
-          setSelectedPropertyType
-        )}
-      </View>
-      <View style={CommonStyles.button}>
-        {renderOptionButton(
-          "Añadir Estacionamiento",
-          "parking",
-          selectedPropertyType,
-          setSelectedPropertyType
-        )}
-      </View>
-      <View style={CommonStyles.button}>
-        {renderOptionButton(
-          "Añadir Oficina",
-          "office",
-          selectedPropertyType,
-          setSelectedPropertyType
-        )}
-      </View>
-      <View style={CommonStyles.button}>
-        {renderOptionButton(
-          "Añadir Bodega",
-          "warehouse",
-          selectedPropertyType,
-          setSelectedPropertyType
-        )}
-      </View>
+        <Image
+          source={require("../../../assets/images/INMOBINDER-03.png")}
+          style={styles.log}
+        />
+
+        <View style={CommonStyles.continer2}>
+          <Text style={CommonStyles.header2}>
+            Selecciona el tipo de proyecto{" "}
+          </Text>
+          <View style={CommonStyles.button}>
+            {renderOptionButton(
+              "Añadir Departamento",
+              "department",
+              selectedPropertyType,
+              setSelectedPropertyType
+            )}
+          </View>
+          <View style={CommonStyles.button}>
+            {renderOptionButton(
+              "Añadir Casa",
+              "house",
+              selectedPropertyType,
+              setSelectedPropertyType
+            )}
+          </View>
+          <View style={CommonStyles.button}>
+            {renderOptionButton(
+              "Añadir Parcela",
+              "plot",
+              selectedPropertyType,
+              setSelectedPropertyType
+            )}
+          </View>
+          <View style={CommonStyles.button}>
+            {renderOptionButton(
+              "Añadir Estacionamiento",
+              "parking",
+              selectedPropertyType,
+              setSelectedPropertyType
+            )}
+          </View>
+          <View style={CommonStyles.button}>
+            {renderOptionButton(
+              "Añadir Oficina",
+              "office",
+              selectedPropertyType,
+              setSelectedPropertyType
+            )}
+          </View>
+          <View style={CommonStyles.button}>
+            {renderOptionButton(
+              "Añadir Bodega",
+              "warehouse",
+              selectedPropertyType,
+              setSelectedPropertyType
+            )}
+          </View>
+        </View>
+      </ImageBackground>
     </View>
   );
 
@@ -132,19 +148,35 @@ const AddProject = ({ navigation }) => {
   };
 
   return (
-    <ScrollView
-      style={CommonStyles.container}
-      contentContainerStyle={CommonStyles.scrollContainer}
-    >
+    <View style={styles.backgorundImage}>
       {selectedPropertyType ? renderForm() : renderPropertyTypeOptions()}
-    </ScrollView>
+    </View>
   );
 };
 const styles = StyleSheet.create({
-  image: {
-    width: 60, // Ajusta el ancho de la imagen
-    height: 50, // Ajusta la altura de la imagen
+  homebutton: {
+    width: 40, // Ajusta el ancho de la imagen
+    height: 40, // Ajusta la altura de la image
+    position: "absolute",
+    margin: 1,
+    top: -120,
+
+    backgroundColor: "#D7DBDD",
+  },
+
+  backgorundImage: {
+    width: "100%",
+    height: "100%",
+    marginTop: 85,
+    resizeMode: "cover",
+  },
+  log: {
+    width: 200, // Ajusta el ancho de la imagen
+    height: 100, // Ajusta la altura de la imagen
     resizeMode: "contain", // Esto asegura que la imagen se escale proporcionalmente
+    position: "absolute",
+    top: -120,
+    left: 100,
   },
 });
 

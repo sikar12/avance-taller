@@ -6,11 +6,31 @@ const CommonStyles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
+
+  continer2: {
+    position: "center",
+    padding: 20,
+    backgroundColor: "#fff",
+    margin: 20,
+    marginTop: "100px",
+    borderRadius: 30,
+
+    marginBottom: 1,
+  },
+
   header: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
   },
+
+  header2: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+
   formLabel: {
     fontSize: 16,
     marginBottom: 10,
@@ -52,12 +72,14 @@ const CommonStyles = StyleSheet.create({
     margin: 20,
     justifyContent: "center", // Centra los elementos hijos verticalmente
     alignItems: "center", // Centra los elementos hijos horizontalmente
+
     marginBottom: 1,
   },
   Backbutton: {
     position: "absolute",
     top: 46,
-    left: 327,
+    left: 10,
+    resizeMode: "contain",
     padding: 10,
     backgroundColor: "#D7DBDD",
     borderRadius: 50,
@@ -66,6 +88,7 @@ const CommonStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
+    marginBottom: 10,
   },
   scrollContainer: {
     paddingBottom: 20,

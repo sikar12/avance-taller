@@ -108,6 +108,10 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 40,
     colorletter: "white",
+    width: 50,
+    height: 50,
+    top: 670,
+    left: 330,
   },
   buttonText: {
     color: "white",
