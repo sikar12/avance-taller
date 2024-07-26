@@ -10,13 +10,17 @@ import {
   Switch,
   Image,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import { collection, addDoc } from "firebase/firestore";
 import { database } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
-
+import Icon from "react-native-vector-icons/Ionicons";
+import { db } from "../../utils/firebase";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 export default function Add() {
   // Estado para los interruptores
   const [isEstacionamiento, setIsEstacionamiento] = useState(false);
@@ -26,18 +30,51 @@ export default function Add() {
   const [propertyStatus, setPropertyStatus] = useState("");
   const [propertyCondition, setPropertyCondition] = useState("");
   const [propertyOrientation, setPropertyOrientation] = useState("");
+
+  const [propertyData, setPropertyData] = useState({
+    street: "",
+    number: "",
+    commune: "",
+    region: "",
+    description: "",
+    priceMin: "",
+    priceMax: "",
+    surfaceTotalMin: "",
+    surfaceTotalMax: "",
+    surfaceUtilMin: "",
+    surfaceUtilMax: "",
+    towerNumber: "",
+    floorNumber: "",
+    antiquity: "",
+    additionalFeature: "",
+  });
+
   const navigation = useNavigation();
+
   const handleInputChange = (name, value) => {
     setPropertyData({ ...propertyData, [name]: value });
   };
 
   const onSubmit = async () => {
-    const address = `${propertyData.street} ${propertyData.number}, ${propertyData.commune}, ${propertyData.region}`;
-    await addDoc(collection(database, "properties"), {
-      ...propertyData,
-      address,
-    });
-    navigation.goBack();
+    try {
+      const address = `${propertyData.street} ${propertyData.number}, ${propertyData.commune}, ${propertyData.region}`;
+      console.log(address);
+      await addDoc(collection(db, "properties"), {
+        address,
+        isEstacionamiento,
+        isCalefaccion,
+        isAscensor,
+        isGreenArea,
+        propertyStatus,
+        propertyCondition,
+        propertyOrientation,
+      });
+      Alert.alert("Propiedad creada exitosamente");
+      navigation.goBack();
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error al crear la propiedad");
+    }
   };
 
   const renderOptionButton = (label, value, currentValue, setValue) => (
@@ -64,10 +101,18 @@ export default function Add() {
       source={require("../../../assets/images/Group.png")}
       style={styles.backgorundImage}
     >
-      <TouchableOpacity
-        style={styles.homebutton}
-        onPress={() => navigation.navigate("Home")}
-      ></TouchableOpacity>
+      <View style={styles.homebutton}>
+        <Button
+          title="◀"
+          onPress={() => navigation.navigate("Home")}
+          color="black"
+        />
+        <Image
+          style={styles.logo}
+          source={require("../../../assets/images/INMOBINDER-03.png")}
+        />
+      </View>
+
       <View style={styles.container}>
         <Text style={CommonStyles.header2}>Crear Bodega</Text>
         <ScrollView
@@ -122,12 +167,14 @@ export default function Add() {
           <TextInput
             style={CommonStyles.input}
             placeholder="Ingrese dirección"
+            onChange={(text) => handleInputChange("street", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Descripción</Text>
           <TextInput
             style={CommonStyles.input}
             placeholder="Ingrese descripción de la propiedad"
+            onChange={(text) => handleInputChange("description", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Precio</Text>
@@ -137,10 +184,12 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min."
+              onChangeText={(text) => handleInputChange("priceMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max."
+              onChangeText={(text) => handleInputChange("priceMax", text)}
             />
           </View>
           <Text style={CommonStyles.formLabel}>Superficie total</Text>
@@ -150,10 +199,16 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              onChangeText={(text) =>
+                handleInputChange("surfaceTotalMin", text)
+              }
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
+              onChangeText={(text) =>
+                handleInputChange("surfaceTotalMax", text)
+              }
             />
           </View>
 
@@ -164,23 +219,37 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              onChangeText={(text) => handleInputChange("surfaceUtilMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
+              onChange={(text) => handleInputChange("surfaceUtilMax", text)}
             />
           </View>
 
           <Text style={CommonStyles.formLabel}>Número de torre</Text>
-          <TextInput style={CommonStyles.input} placeholder="" />
+          <TextInput
+            style={CommonStyles.input}
+            placeholder=""
+            onChangeText={(text) => handleInputChange("towerNumber", text)}
+          />
 
           <Text style={CommonStyles.formLabel}>
             Número de piso de la unidad
           </Text>
-          <TextInput style={CommonStyles.input} placeholder="" />
+          <TextInput
+            style={CommonStyles.input}
+            placeholder=""
+            onChangeText={(text) => handleInputChange("floorNumber", text)}
+          />
 
           <Text style={CommonStyles.formLabel}>Antigüedad</Text>
-          <TextInput style={CommonStyles.input} placeholder="Años" />
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Años"
+            onChange={(text) => handleInputChange("antiquity", text)}
+          />
 
           <Text style={CommonStyles.formLabel}>Orientación</Text>
           <View style={styles.optionButtonContainer}>
@@ -265,7 +334,10 @@ export default function Add() {
             <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={CommonStyles.button}>
+          <TouchableOpacity
+            style={CommonStyles.button}
+            onPress={() => onSubmit()}
+          >
             <Text style={CommonStyles.buttonText}>Aplicar cambios</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -313,12 +385,14 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   homebutton: {
-    width: 40, // Ajusta el ancho de la imagen
-    height: 40, // Ajusta la altura de la image
-    position: "absolute",
-    margin: 1,
+    width: "15%", // Ajusta el ancho de la imagen
+    height: "5%", // Ajusta la altura de la image
+    // position: "absolute",
+
     top: -120,
-    backgroundColor: "#D7DBDD",
+    left: 10,
+    Radius: 50,
+    borderRadius: 50,
   },
   container: {
     position: "center",
@@ -330,63 +404,11 @@ const styles = StyleSheet.create({
     marginBottom: 1,
     height: "70%",
   },
+  imagecontiner: {
+    backgroundColor: "#D7DBDD",
+  },
+  logo: {
+    top: "-10%",
+    left: "225%",
+  },
 });
-
-// ---------------------------------------------------------------------------
-
-//   return (
-//
-//       <TouchableOpacity
-//         style={styles.homebutton}
-//         onPress={() => navigation.navigate("Home")}
-//       ></TouchableOpacity>
-
-//       <View style={CommonStyles.continer2}>
-//         <Text style={CommonStyles.header2}>Crear Bodega</Text>
-//         <ScrollView>
-//           <Text>Propiedad en</Text>
-//           <View style={styles.optionButtonContainer}>
-//             {renderOptionButton(
-//               "Arriendo",
-//               "arriendo",
-//               propertyStatus,
-//               setPropertyStatus
-//             )}
-//           </View>
-//         </ScrollView>
-//       </View>
-//     </ImageBackground>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   homebutton: {
-//     width: 40, // Ajusta el ancho de la imagen
-//     height: 40, // Ajusta la altura de la image
-//     position: "absolute",
-//     margin: 1,
-//     top: -120,
-
-//     backgroundColor: "#D7DBDD",
-//   },
-
-//   backgorundImage: {
-//     width: "100%",
-//     height: "100%",
-//     marginTop: 85,
-//     resizeMode: "cover",
-//   },
-//   log: {
-//     width: 200, // Ajusta el ancho de la imagen
-//     height: 100, // Ajusta la altura de la imagen
-//     resizeMode: "contain", // Esto asegura que la imagen se escale proporcionalmente
-//     position: "absolute",
-//     top: -120,
-//     left: 100,
-//   },
-//   optionButtonContainer: {
-//     flexDirection: "row",
-//     flexWrap: "wrap",
-//     marginBottom: 20,
-//   },
-// });
