@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Switch,
   Image,
+  ImageBackground,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
@@ -59,202 +60,217 @@ export default function Add() {
   );
 
   return (
-    <ScrollView
-      style={CommonStyles.container}
-      contentContainerStyle={styles.scrollContainer}
+    <ImageBackground
+      source={require("../../../assets/images/Group.png")}
+      style={styles.backgorundImage}
     >
-      <Text style={CommonStyles.header}>Crear Bodega</Text>
       <TouchableOpacity
-        style={styles.container}
+        style={styles.homebutton}
         onPress={() => navigation.navigate("Home")}
-      >
-        <Image
-          source={require("../../../assets/images/volver.png")}
-          style={styles.image}
-        />
-      </TouchableOpacity>
+      ></TouchableOpacity>
+      <View style={styles.container}>
+        <Text style={CommonStyles.header2}>Crear Bodega</Text>
+        <ScrollView
+          style={CommonStyles.container}
+          contentContainerStyle={styles.scrollContainer}
+        >
+          <Text style={CommonStyles.formLabel}>Propiedad en</Text>
+          <View style={styles.optionButtonContainer}>
+            {renderOptionButton(
+              "Arriendo",
+              "arriendo",
+              propertyStatus,
+              setPropertyStatus
+            )}
+            {renderOptionButton(
+              "Arriendo temporal",
+              "arriendoTemporal",
+              propertyStatus,
+              setPropertyStatus
+            )}
+            {renderOptionButton(
+              "Venta",
+              "venta",
+              propertyStatus,
+              setPropertyStatus
+            )}
+          </View>
 
-      <Text style={CommonStyles.formLabel}>Propiedad en</Text>
-      <View style={styles.optionButtonContainer}>
-        {renderOptionButton(
-          "Arriendo",
-          "arriendo",
-          propertyStatus,
-          setPropertyStatus
-        )}
-        {renderOptionButton(
-          "Arriendo temporal",
-          "arriendoTemporal",
-          propertyStatus,
-          setPropertyStatus
-        )}
-        {renderOptionButton(
-          "Venta",
-          "venta",
-          propertyStatus,
-          setPropertyStatus
-        )}
+          <Text style={CommonStyles.formLabel}>Estado propiedad</Text>
+          <View style={styles.optionButtonContainer}>
+            {renderOptionButton(
+              "Terminado",
+              "terminado",
+              propertyCondition,
+              setPropertyCondition
+            )}
+            {renderOptionButton(
+              "En construcción",
+              "en construcción",
+              propertyCondition,
+              setPropertyCondition
+            )}
+            {renderOptionButton(
+              "Suspendido",
+              "suspendido",
+              propertyCondition,
+              setPropertyCondition
+            )}
+          </View>
+
+          <Text style={CommonStyles.formLabel}>Dirección</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese dirección"
+          />
+
+          <Text style={CommonStyles.formLabel}>Descripción</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese descripción de la propiedad"
+          />
+
+          <Text style={CommonStyles.formLabel}>Precio</Text>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              placeholder="Min."
+            />
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              placeholder="Max."
+            />
+          </View>
+          <Text style={CommonStyles.formLabel}>Superficie total</Text>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              placeholder="Min. m²"
+            />
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              placeholder="Max. m²"
+            />
+          </View>
+
+          <Text style={CommonStyles.formLabel}>Superficie util</Text>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-between" }}
+          >
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              placeholder="Min. m²"
+            />
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              placeholder="Max. m²"
+            />
+          </View>
+
+          <Text style={CommonStyles.formLabel}>Número de torre</Text>
+          <TextInput style={CommonStyles.input} placeholder="" />
+
+          <Text style={CommonStyles.formLabel}>
+            Número de piso de la unidad
+          </Text>
+          <TextInput style={CommonStyles.input} placeholder="" />
+
+          <Text style={CommonStyles.formLabel}>Antigüedad</Text>
+          <TextInput style={CommonStyles.input} placeholder="Años" />
+
+          <Text style={CommonStyles.formLabel}>Orientación</Text>
+          <View style={styles.optionButtonContainer}>
+            {renderOptionButton(
+              "NO",
+              "no",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "NP",
+              "np",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "SO",
+              "so",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "SP",
+              "sp",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "NOSP",
+              "nosp",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "S",
+              "s",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "P",
+              "p",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "N",
+              "n",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+            {renderOptionButton(
+              "O",
+              "o",
+              propertyOrientation,
+              setPropertyOrientation
+            )}
+          </View>
+
+          <Text style={CommonStyles.formLabel}>Estacionamiento</Text>
+          <Switch
+            value={isEstacionamiento}
+            onValueChange={setIsEstacionamiento}
+          />
+
+          <Text style={CommonStyles.formLabel}>Calefacción</Text>
+          <Switch value={isCalefaccion} onValueChange={setIsCalefaccion} />
+
+          <Text style={CommonStyles.formLabel}>Area verde</Text>
+          <Switch value={isGreenArea} onValueChange={setIsGreenArea} />
+
+          <Text style={CommonStyles.formLabel}>Ascensor</Text>
+          <Switch value={isAscensor} onValueChange={setIsAscensor} />
+
+          <Text style={CommonStyles.formLabel}>Otra</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese característica adicional"
+          />
+
+          <TouchableOpacity style={CommonStyles.button}>
+            <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={CommonStyles.button}>
+            <Text style={CommonStyles.buttonText}>Aplicar cambios</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
-
-      <Text style={CommonStyles.formLabel}>Estado propiedad</Text>
-      <View style={styles.optionButtonContainer}>
-        {renderOptionButton(
-          "Terminado",
-          "terminado",
-          propertyCondition,
-          setPropertyCondition
-        )}
-        {renderOptionButton(
-          "En construcción",
-          "en construcción",
-          propertyCondition,
-          setPropertyCondition
-        )}
-        {renderOptionButton(
-          "Suspendido",
-          "suspendido",
-          propertyCondition,
-          setPropertyCondition
-        )}
-      </View>
-
-      <Text style={CommonStyles.formLabel}>Dirección</Text>
-      <TextInput style={CommonStyles.input} placeholder="Ingrese dirección" />
-
-      <Text style={CommonStyles.formLabel}>Descripción</Text>
-      <TextInput
-        style={CommonStyles.input}
-        placeholder="Ingrese descripción de la propiedad"
-      />
-
-      <Text style={CommonStyles.formLabel}>Precio</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <TextInput
-          style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
-          placeholder="Min."
-        />
-        <TextInput
-          style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
-          placeholder="Max."
-        />
-      </View>
-      <Text style={CommonStyles.formLabel}>Superficie total</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <TextInput
-          style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
-          placeholder="Min. m²"
-        />
-        <TextInput
-          style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
-          placeholder="Max. m²"
-        />
-      </View>
-
-      <Text style={CommonStyles.formLabel}>Superficie util</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <TextInput
-          style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
-          placeholder="Min. m²"
-        />
-        <TextInput
-          style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
-          placeholder="Max. m²"
-        />
-      </View>
-
-      <Text style={CommonStyles.formLabel}>Número de torre</Text>
-      <TextInput style={CommonStyles.input} placeholder="" />
-
-      <Text style={CommonStyles.formLabel}>Número de piso de la unidad</Text>
-      <TextInput style={CommonStyles.input} placeholder="" />
-
-      <Text style={CommonStyles.formLabel}>Antigüedad</Text>
-      <TextInput style={CommonStyles.input} placeholder="Años" />
-
-      <Text style={CommonStyles.formLabel}>Orientación</Text>
-      <View style={styles.optionButtonContainer}>
-        {renderOptionButton(
-          "NO",
-          "no",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "NP",
-          "np",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "SO",
-          "so",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "SP",
-          "sp",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "NOSP",
-          "nosp",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "S",
-          "s",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "P",
-          "p",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "N",
-          "n",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-        {renderOptionButton(
-          "O",
-          "o",
-          propertyOrientation,
-          setPropertyOrientation
-        )}
-      </View>
-
-      <Text style={CommonStyles.formLabel}>Estacionamiento</Text>
-      <Switch value={isEstacionamiento} onValueChange={setIsEstacionamiento} />
-
-      <Text style={CommonStyles.formLabel}>Calefacción</Text>
-      <Switch value={isCalefaccion} onValueChange={setIsCalefaccion} />
-
-      <Text style={CommonStyles.formLabel}>Area verde</Text>
-      <Switch value={isGreenArea} onValueChange={setIsGreenArea} />
-
-      <Text style={CommonStyles.formLabel}>Ascensor</Text>
-      <Switch value={isAscensor} onValueChange={setIsAscensor} />
-
-      <Text style={CommonStyles.formLabel}>Otra</Text>
-      <TextInput
-        style={CommonStyles.input}
-        placeholder="Ingrese característica adicional"
-      />
-
-      <TouchableOpacity style={CommonStyles.button}>
-        <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={CommonStyles.button}>
-        <Text style={CommonStyles.buttonText}>Aplicar cambios</Text>
-      </TouchableOpacity>
-    </ScrollView>
+    </ImageBackground>
   );
 }
 
@@ -290,4 +306,87 @@ const styles = StyleSheet.create({
     height: 50, // Ajusta la altura de la imagen
     resizeMode: "contain", // Esto asegura que la imagen se escale proporcionalmente
   },
+  backgorundImage: {
+    width: "100%",
+    height: "100%",
+    marginTop: 85,
+    resizeMode: "cover",
+  },
+  homebutton: {
+    width: 40, // Ajusta el ancho de la imagen
+    height: 40, // Ajusta la altura de la image
+    position: "absolute",
+    margin: 1,
+    top: -120,
+    backgroundColor: "#D7DBDD",
+  },
+  container: {
+    position: "center",
+    padding: 20,
+    backgroundColor: "#fff",
+    margin: 20,
+    marginTop: "100px",
+    borderRadius: 30,
+    marginBottom: 1,
+    height: "70%",
+  },
 });
+
+// ---------------------------------------------------------------------------
+
+//   return (
+//
+//       <TouchableOpacity
+//         style={styles.homebutton}
+//         onPress={() => navigation.navigate("Home")}
+//       ></TouchableOpacity>
+
+//       <View style={CommonStyles.continer2}>
+//         <Text style={CommonStyles.header2}>Crear Bodega</Text>
+//         <ScrollView>
+//           <Text>Propiedad en</Text>
+//           <View style={styles.optionButtonContainer}>
+//             {renderOptionButton(
+//               "Arriendo",
+//               "arriendo",
+//               propertyStatus,
+//               setPropertyStatus
+//             )}
+//           </View>
+//         </ScrollView>
+//       </View>
+//     </ImageBackground>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   homebutton: {
+//     width: 40, // Ajusta el ancho de la imagen
+//     height: 40, // Ajusta la altura de la image
+//     position: "absolute",
+//     margin: 1,
+//     top: -120,
+
+//     backgroundColor: "#D7DBDD",
+//   },
+
+//   backgorundImage: {
+//     width: "100%",
+//     height: "100%",
+//     marginTop: 85,
+//     resizeMode: "cover",
+//   },
+//   log: {
+//     width: 200, // Ajusta el ancho de la imagen
+//     height: 100, // Ajusta la altura de la imagen
+//     resizeMode: "contain", // Esto asegura que la imagen se escale proporcionalmente
+//     position: "absolute",
+//     top: -120,
+//     left: 100,
+//   },
+//   optionButtonContainer: {
+//     flexDirection: "row",
+//     flexWrap: "wrap",
+//     marginBottom: 20,
+//   },
+// });

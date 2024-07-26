@@ -13,6 +13,7 @@ import Homemaps from "./src/screen/RealState/Home";
 import MenuButton from "./src/screen/RealState/Menu";
 import Add from "./src/screen/RealState/Addproject";
 import Addproject from "./src/screen/RealState/Addproject";
+import { Firestore } from "firebase/app";
 
 const Stack = createNativeStackNavigator();
 

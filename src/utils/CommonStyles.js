@@ -5,6 +5,7 @@ const CommonStyles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
+    position: "center",
   },
 
   continer2: {
@@ -14,7 +15,6 @@ const CommonStyles = StyleSheet.create({
     margin: 20,
     marginTop: "100px",
     borderRadius: 30,
-
     marginBottom: 1,
   },
 
