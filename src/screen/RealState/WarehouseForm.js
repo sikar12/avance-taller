@@ -387,8 +387,6 @@ const styles = StyleSheet.create({
   homebutton: {
     width: "15%", // Ajusta el ancho de la imagen
     height: "5%", // Ajusta la altura de la image
-    // position: "absolute",
-
     top: -120,
     left: 10,
     Radius: 50,
