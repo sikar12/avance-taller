@@ -57,7 +57,7 @@ const MenuButton = () => {
                 text="Añadir proyecto "
                 onPress={() => navigation.navigate("Add")}
               />
-              <BotonMenu text="Mis proyectos" />
+              <BotonMenu text="Mis proyectos" onPress={() => navigation.navigate("Projects")} />
               <BotonMenu text="Configuración" />
               <BotonMenu text="Perfil" />
             </View>

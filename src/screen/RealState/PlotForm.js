@@ -10,11 +10,12 @@ import {
   Switch,
   ImageBackground,
   Image,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import { collection, addDoc } from "firebase/firestore";
-import { database } from "../../utils/firebase";
+import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 
 export default function Add() {
@@ -22,19 +23,45 @@ export default function Add() {
   const [isGreenArea, setIsGreenArea] = useState(false);
   const [propertyStatus, setPropertyStatus] = useState("");
   const [propertyCondition, setPropertyCondition] = useState("");
+
+
+
+  const [propertyData, setPropertyData] = useState({
+    street: "",
+    number: "",
+    commune: "",
+    region: "",
+    description: "",
+    priceMin: "",
+    priceMax: "",
+    surfaceTotalMin: "",
+    surfaceTotalMax: "",
+    antiquity: "",
+    additionalFeature: "",
+    isGreenArea: false,
+    propertyStatus: "",
+    propertyCondition: "",
+  });
+
   const navigation = useNavigation();
 
-  const handleInputChange = (name, value) => {
-    setPropertyData({ ...propertyData, [name]: value });
+  const handleInputChange = (field, value) => {
+    setPropertyData({ ...propertyData, [field]: value });
   };
 
   const onSubmit = async () => {
-    const address = `${propertyData.street} ${propertyData.number}, ${propertyData.commune}, ${propertyData.region}`;
-    await addDoc(collection(database, "properties"), {
-      ...propertyData,
-      address,
-    });
-    navigation.goBack();
+    try {
+      await addDoc(collection(db, "properties"),{
+        propertyData,
+        propertyStatus,
+        propertyCondition,
+      });
+      Alert.alert("Propiedad creada exitosamente");
+      navigation.goBack();
+    } catch (error) {
+      console.log("Error al crear la propiedad:", error);
+      Alert.alert("Error al crear la propiedad");
+    }
   };
 
   const renderOptionButton = (label, value, currentValue, setValue) => (
@@ -122,18 +149,45 @@ export default function Add() {
             )}
           </View>
 
-          <Text style={CommonStyles.formLabel}>Dirección</Text>
+          <Text style={CommonStyles.formLabel}>Región</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese dirección"
+            placeholder="Ingrese región"
+            value={propertyData.region}
+            onChangeText={(text) => handleInputChange("region", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Comuna</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese comuna"
+            value={propertyData.commune}
+            onChangeText={(text) => handleInputChange("commune", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Calle</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese Calle"
+            value={propertyData.street}
+            onChangeText={(text) => handleInputChange("street", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Número</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese número"
+            value={propertyData.number}
+            onChangeText={(text) => handleInputChange("number", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Descripción</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese descripción de la propiedad"
+            placeholder="Ingrese descripción"
+            value={propertyData.description}
+            onChangeText={(text) => handleInputChange("description", text)}
           />
-
           <Text style={CommonStyles.formLabel}>Precio</Text>
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}
@@ -141,10 +195,14 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min."
+              value={propertyData.priceMin}
+              onChangeText={(text) => handleInputChange("priceMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max."
+              value={propertyData.priceMax}
+              onChangeText={(text) => handleInputChange("priceMax", text)}
             />
           </View>
 
@@ -155,30 +213,50 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              value={propertyData.surfaceTotalMin}
+              onChangeText={(text) => handleInputChange("surfaceTotalMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
+              value={propertyData.surfaceTotalMax}
+              onChangeText={(text) => handleInputChange("surfaceTotalMax", text)}
             />
           </View>
 
           <Text style={CommonStyles.formLabel}>Antigüedad</Text>
-          <TextInput style={CommonStyles.input} placeholder="Años" />
-
-          <Text style={CommonStyles.formLabel}>Area verde</Text>
-          <Switch value={isGreenArea} onValueChange={setIsGreenArea} />
-
-          <Text style={CommonStyles.formLabel}>Otra</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese característica adicional"
+            placeholder="Antigüedad"
+            value={propertyData.antiquity}
+            onChangeText={(text) => handleInputChange("antiquity", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Áreas verdes</Text>
+          <Switch
+            value={isGreenArea}
+            onValueChange={(value) => {
+              setIsGreenArea(value);
+              handleInputChange("isGreenArea", value);
+            }}
+          />
+
+          <Text style={CommonStyles.formLabel}>Características adicionales</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Características adicionales"
+            value={propertyData.additionalFeature}
+            onChangeText={(text) => handleInputChange("additionalFeature", text)}
           />
 
           <TouchableOpacity style={CommonStyles.button}>
             <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={CommonStyles.button}>
+          <TouchableOpacity
+            style={CommonStyles.button}
+            onPress={() => onSubmit()}
+          >
             <Text style={CommonStyles.buttonText}>Aplicar cambios</Text>
           </TouchableOpacity>
         </ScrollView>

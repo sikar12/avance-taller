@@ -12,15 +12,12 @@ import {
   ImageBackground,
   Alert,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import { collection, addDoc } from "firebase/firestore";
-import { database } from "../../utils/firebase";
+import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 import Icon from "react-native-vector-icons/Ionicons";
-import { db } from "../../utils/firebase";
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+
 export default function Add() {
   // Estado para los interruptores
   const [isEstacionamiento, setIsEstacionamiento] = useState(false);
@@ -47,24 +44,25 @@ export default function Add() {
     floorNumber: "",
     antiquity: "",
     additionalFeature: "",
+    isEstacionamiento: false,
+    isCalefaccion: false,
+    isAscensor: false,
+    isGreenArea: false,
+    propertyStatus: "",
+    propertyCondition: "",
+    propertyOrientation: ""
   });
 
   const navigation = useNavigation();
 
-  const handleInputChange = (name, value) => {
-    setPropertyData({ ...propertyData, [name]: value });
+  const handleInputChange = (field, value) => {
+    setPropertyData({ ...propertyData, [field]: value });
   };
 
   const onSubmit = async () => {
     try {
-      const address = `${propertyData.street} ${propertyData.number}, ${propertyData.commune}, ${propertyData.region}`;
-      console.log(address);
-      await addDoc(collection(db, "properties"), {
-        address,
-        isEstacionamiento,
-        isCalefaccion,
-        isAscensor,
-        isGreenArea,
+      await addDoc(collection(db, "properties"),{
+        propertyData,
         propertyStatus,
         propertyCondition,
         propertyOrientation,
@@ -72,7 +70,7 @@ export default function Add() {
       Alert.alert("Propiedad creada exitosamente");
       navigation.goBack();
     } catch (error) {
-      console.log(error);
+      console.log("Error al crear la propiedad:", error);
       Alert.alert("Error al crear la propiedad");
     }
   };
@@ -163,20 +161,45 @@ export default function Add() {
             )}
           </View>
 
-          <Text style={CommonStyles.formLabel}>Dirección</Text>
+          <Text style={CommonStyles.formLabel}>Región</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese dirección"
-            onChange={(text) => handleInputChange("street", text)}
+            placeholder="Ingrese región"
+            value={propertyData.region}
+            onChangeText={(text) => handleInputChange("region", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Comuna</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese comuna"
+            value={propertyData.commune}
+            onChangeText={(text) => handleInputChange("commune", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Calle</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese Calle"
+            value={propertyData.street}
+            onChangeText={(text) => handleInputChange("street", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Número</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese número"
+            value={propertyData.number}
+            onChangeText={(text) => handleInputChange("number", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Descripción</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese descripción de la propiedad"
-            onChange={(text) => handleInputChange("description", text)}
+            placeholder="Ingrese descripción"
+            value={propertyData.description}
+            onChangeText={(text) => handleInputChange("description", text)}
           />
-
           <Text style={CommonStyles.formLabel}>Precio</Text>
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}
@@ -184,14 +207,17 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min."
+              value={propertyData.priceMin}
               onChangeText={(text) => handleInputChange("priceMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max."
+              value={propertyData.priceMax}
               onChangeText={(text) => handleInputChange("priceMax", text)}
             />
           </View>
+
           <Text style={CommonStyles.formLabel}>Superficie total</Text>
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}
@@ -199,16 +225,15 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
-              onChangeText={(text) =>
-                handleInputChange("surfaceTotalMin", text)
-              }
+              value={propertyData.surfaceTotalMin}
+              onChangeText={(text) => handleInputChange("surfaceTotalMin", text)}
             />
+
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
-              onChangeText={(text) =>
-                handleInputChange("surfaceTotalMax", text)
-              }
+              value={propertyData.surfaceTotalMax}
+              onChangeText={(text) => handleInputChange("surfaceTotalMax", text)}
             />
           </View>
 
@@ -219,39 +244,42 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              value={propertyData.surfaceUtilMin}
               onChangeText={(text) => handleInputChange("surfaceUtilMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
-              onChange={(text) => handleInputChange("surfaceUtilMax", text)}
+              value={propertyData.surfaceUtilMax}
+              onChangeText={(text) => handleInputChange("surfaceUtilMax", text)}
             />
           </View>
 
           <Text style={CommonStyles.formLabel}>Número de torre</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder=""
+            placeholder="Número de Torre"
+            value={propertyData.towerNumber}
             onChangeText={(text) => handleInputChange("towerNumber", text)}
           />
 
-          <Text style={CommonStyles.formLabel}>
-            Número de piso de la unidad
-          </Text>
+          <Text style={CommonStyles.formLabel}>Número de piso de la unidad</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder=""
+            placeholder="Número de Piso"
+            value={propertyData.floorNumber}
             onChangeText={(text) => handleInputChange("floorNumber", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Antigüedad</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Años"
-            onChange={(text) => handleInputChange("antiquity", text)}
+            placeholder="Antigüedad"
+            value={propertyData.antiquity}
+            onChangeText={(text) => handleInputChange("antiquity", text)}
           />
 
-          <Text style={CommonStyles.formLabel}>Orientación</Text>
+<Text style={CommonStyles.formLabel}>Orientación</Text>
           <View style={styles.optionButtonContainer}>
             {renderOptionButton(
               "NO",
@@ -309,25 +337,49 @@ export default function Add() {
             )}
           </View>
 
+
           <Text style={CommonStyles.formLabel}>Estacionamiento</Text>
           <Switch
             value={isEstacionamiento}
-            onValueChange={setIsEstacionamiento}
+            onValueChange={(value) => {
+              setIsEstacionamiento(value);
+              handleInputChange("isEstacionamiento", value);
+            }}
           />
 
           <Text style={CommonStyles.formLabel}>Calefacción</Text>
-          <Switch value={isCalefaccion} onValueChange={setIsCalefaccion} />
-
-          <Text style={CommonStyles.formLabel}>Area verde</Text>
-          <Switch value={isGreenArea} onValueChange={setIsGreenArea} />
+          <Switch
+            value={isCalefaccion}
+            onValueChange={(value) => {
+              setIsCalefaccion(value);
+              handleInputChange("isCalefaccion", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Ascensor</Text>
-          <Switch value={isAscensor} onValueChange={setIsAscensor} />
+          <Switch
+            value={isAscensor}
+            onValueChange={(value) => {
+              setIsAscensor(value);
+              handleInputChange("isAscensor", value);
+            }}
+          />
 
-          <Text style={CommonStyles.formLabel}>Otra</Text>
+          <Text style={CommonStyles.formLabel}>Áreas verdes</Text>
+          <Switch
+            value={isGreenArea}
+            onValueChange={(value) => {
+              setIsGreenArea(value);
+              handleInputChange("isGreenArea", value);
+            }}
+          />
+
+          <Text style={CommonStyles.formLabel}>Características adicionales</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese característica adicional"
+            placeholder="Características adicionales"
+            value={propertyData.additionalFeature}
+            onChangeText={(text) => handleInputChange("additionalFeature", text)}
           />
 
           <TouchableOpacity style={CommonStyles.button}>
@@ -345,6 +397,7 @@ export default function Add() {
     </ImageBackground>
   );
 }
+
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -410,3 +463,4 @@ const styles = StyleSheet.create({
     left: "225%",
   },
 });
+

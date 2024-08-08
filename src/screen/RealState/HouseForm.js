@@ -10,55 +10,109 @@ import {
   Switch,
   ImageBackground,
   Image,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
 import { collection, addDoc } from "firebase/firestore";
-import { database } from "../../utils/firebase";
+import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 
 export default function Add() {
   // Estado para los interruptores
+  const [isEstacionamiento, setIsEstacionamiento] = useState(false);
+  const [isCalefaccion, setIsCalefaccion] = useState(false);
+  const [isAscensor, setIsAscensor] = useState(false);
+  const [isGreenArea, setIsGreenArea] = useState(false);
+  const [propertyStatus, setPropertyStatus] = useState("");
+  const [propertyCondition, setPropertyCondition] = useState("");
+  const [propertyOrientation, setPropertyOrientation] = useState("");
   const [isBodega, setIsBodega] = useState(false);
   const [isSalaDeEstar, setIsSalaDeEstar] = useState(false);
-  const [isEstacionamiento, setIsEstacionamiento] = useState(false);
   const [isPiscina, setIsPiscina] = useState(false);
   const [isCondominio, setIsCondominio] = useState(false);
   const [isQuincho, setIsQuincho] = useState(false);
-  const [isCalefaccion, setIsCalefaccion] = useState(false);
   const [isConserje, setIsConserje] = useState(false);
-  const [isAscensor, setIsAscensor] = useState(false);
-  const [isMascotas, setIsMascotas] = useState(false);
-  const [isBasketball, setIsBasketball] = useState(false);
   const [isGym, setIsGym] = useState(false);
+  const [isBasketball, setIsBasketball] = useState(false);
   const [isTennis, setIsTennis] = useState(false);
   const [isSoccer, setIsSoccer] = useState(false);
   const [isPaddle, setIsPaddle] = useState(false);
-  const [isGreenArea, setIsGreenArea] = useState(false);
   const [isMultiSport, setIsMultiSport] = useState(false);
-  const [isParty, setIsParty] = useState(false);
-  const [isSauna, setIsSauna] = useState(false);
-  const [isBalcony, setIsBalcony] = useState(false);
-  const [isJacuzzi, setIsJacuzzi] = useState(false);
   const [isTerrace, setIsTerrace] = useState(false);
-  const [propertyStatus, setPropertyStatus] = useState("");
-  const [propertyCondition, setPropertyCondition] = useState("");
-  const [propertyDepartment, setPropertyDepartment] = useState("");
-  const [propertyOrientation, setPropertyOrientation] = useState("");
+  const [isJacuzzi, setIsJacuzzi] = useState(false);
+  const [isParty, setIsParty] = useState(false);
+  const [isBalcony, setIsBalcony] = useState(false);
+  const [isSauna, setIsSauna] = useState(false);
+
+
+  const [propertyData, setPropertyData] = useState({
+    street: "",
+    number: "",
+    commune: "",
+    region: "",
+    description: "",
+    priceMin: "",
+    priceMax: "",
+    surfaceTotalMin: "",
+    surfaceTotalMax: "",
+    surfaceUtilMin: "",
+    surfaceUtilMax: "",
+    surfaceTerraceMin: "",
+    surfaceTerraceMax: "",
+    bedroomMin: "",
+    bedroomMax: "",
+    bathroomMin: "",
+    bathroomMax: "",
+    occupantMax: "",
+    antiquity: "",
+    additionalFeature: "",
+    isBodega: false,
+    isSalaDeEstar: false,
+    isEstacionamiento: false,
+    isPiscina: false,
+    isCondominio: false,
+    isQuincho: false,
+    isCalefaccion: false,
+    isConserje: false,
+    isAscensor: false,
+    isGym: false,
+    isBasketball: false,
+    isTennis: false,
+    isSoccer: false,
+    isPaddle: false,
+    isMultiSport: false,
+    isTerrace: false,
+    isJacuzzi: false,
+    isParty: false,
+    isBalcony: false,
+    isGreenArea: false,
+    isSauna: false,
+    propertyStatus: "",
+    propertyCondition: "",
+    propertyOrientation: "",
+  });
 
   const navigation = useNavigation();
 
-  const handleInputChange = (name, value) => {
-    setPropertyData({ ...propertyData, [name]: value });
+  const handleInputChange = (field, value) => {
+    setPropertyData({ ...propertyData, [field]: value });
   };
 
   const onSubmit = async () => {
-    const address = `${propertyData.street} ${propertyData.number}, ${propertyData.commune}, ${propertyData.region}`;
-    await addDoc(collection(database, "properties"), {
-      ...propertyData,
-      address,
-    });
-    navigation.goBack();
+    try {
+      await addDoc(collection(db, "properties"),{
+        propertyData,
+        propertyStatus,
+        propertyCondition,
+        propertyOrientation,
+      });
+      Alert.alert("Propiedad creada exitosamente");
+      navigation.goBack();
+    } catch (error) {
+      console.log("Error al crear la propiedad:", error);
+      Alert.alert("Error al crear la propiedad");
+    }
   };
 
   const renderOptionButton = (label, value, currentValue, setValue) => (
@@ -149,16 +203,44 @@ export default function Add() {
             )}
           </View>
 
-          <Text style={CommonStyles.formLabel}>Dirección</Text>
+          <Text style={CommonStyles.formLabel}>Región</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese dirección"
+            placeholder="Ingrese región"
+            value={propertyData.region}
+            onChangeText={(text) => handleInputChange("region", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Comuna</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese comuna"
+            value={propertyData.commune}
+            onChangeText={(text) => handleInputChange("commune", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Calle</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese Calle"
+            value={propertyData.street}
+            onChangeText={(text) => handleInputChange("street", text)}
+          />
+
+          <Text style={CommonStyles.formLabel}>Número</Text>
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Ingrese número"
+            value={propertyData.number}
+            onChangeText={(text) => handleInputChange("number", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Descripción</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese descripción de la propiedad"
+            placeholder="Ingrese descripción"
+            value={propertyData.description}
+            onChangeText={(text) => handleInputChange("description", text)}
           />
 
           <Text style={CommonStyles.formLabel}>Precio</Text>
@@ -168,10 +250,14 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min."
+              value={propertyData.priceMin}
+              onChangeText={(text) => handleInputChange("priceMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max."
+              value={propertyData.priceMax}
+              onChangeText={(text) => handleInputChange("priceMax", text)}
             />
           </View>
 
@@ -181,7 +267,15 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
-              placeholder="Min."
+              placeholder="Min. habitaciones"
+              value={propertyData.bedroomMin}
+              onChangeText={(text) => handleInputChange("bedroomMin", text)}
+            />
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              placeholder="Max. habitaciones"
+              value={propertyData.bedroomMax}
+              onChangeText={(text) => handleInputChange("bedroomMax", text)}
             />
           </View>
 
@@ -191,7 +285,15 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
-              placeholder="Min."
+              placeholder="Min. baños"
+              value={propertyData.bathroomMin}
+              onChangeText={(text) => handleInputChange("bathroomMin", text)}
+            />
+            <TextInput
+              style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              placeholder="Max. baños"
+              value={propertyData.bathroomMax}
+              onChangeText={(text) => handleInputChange("bathroomMax", text)}
             />
           </View>
 
@@ -202,10 +304,14 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              value={propertyData.surfaceTotalMin}
+              onChangeText={(text) => handleInputChange("surfaceTotalMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
+              value={propertyData.surfaceTotalMax}
+              onChangeText={(text) => handleInputChange("surfaceTotalMax", text)}
             />
           </View>
 
@@ -216,10 +322,14 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              value={propertyData.surfaceUtilMin}
+              onChangeText={(text) => handleInputChange("surfaceUtilMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
+              value={propertyData.surfaceUtilMax}
+              onChangeText={(text) => handleInputChange("surfaceUtilMax", text)}
             />
           </View>
 
@@ -230,10 +340,14 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               placeholder="Min. m²"
+              value={propertyData.surfaceTerraceMin}
+              onChangeText={(text) => handleInputChange("surfaceTerraceMin", text)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max. m²"
+              value={propertyData.surfaceTerraceMax}
+              onChangeText={(text) => handleInputChange("surfaceTerraceMax", text)}
             />
           </View>
 
@@ -246,11 +360,18 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               placeholder="Max"
+              value={propertyData.occupantMax}
+              onChangeText={(text) => handleInputChange("occupantMax", text)}
             />
           </View>
 
           <Text style={CommonStyles.formLabel}>Antigüedad</Text>
-          <TextInput style={CommonStyles.input} placeholder="Años" />
+          <TextInput
+            style={CommonStyles.input}
+            placeholder="Antigüedad"
+            value={propertyData.antiquity}
+            onChangeText={(text) => handleInputChange("antiquity", text)}
+          />
 
           <Text style={CommonStyles.formLabel}>Orientación</Text>
           <View style={styles.optionButtonContainer}>
@@ -311,84 +432,210 @@ export default function Add() {
           </View>
 
           <Text style={CommonStyles.formLabel}>Bodega</Text>
-          <Switch value={isBodega} onValueChange={setIsBodega} />
-          <TextInput style={CommonStyles.input} placeholder="Indique cuantas" />
+          <Switch
+            value={isBodega}
+            onValueChange={(value) => {
+              setIsBodega(value);
+              handleInputChange("isBodega", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Sala de estar</Text>
-          <Switch value={isSalaDeEstar} onValueChange={setIsSalaDeEstar} />
+          <Switch
+            value={isSalaDeEstar}
+            onValueChange={(value) => {
+              setIsSalaDeEstar(value);
+              handleInputChange("isSalaDeEstar", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Estacionamiento</Text>
           <Switch
             value={isEstacionamiento}
-            onValueChange={setIsEstacionamiento}
+            onValueChange={(value) => {
+              setIsEstacionamiento(value);
+              handleInputChange("isEstacionamiento", value);
+            }}
           />
-          <TextInput style={CommonStyles.input} placeholder="Indique cuantos" />
 
           <Text style={CommonStyles.formLabel}>Piscina</Text>
-          <Switch value={isPiscina} onValueChange={setIsPiscina} />
+          <Switch
+            value={isPiscina}
+            onValueChange={(value) => {
+              setIsPiscina(value);
+              handleInputChange("isPiscina", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Condominio</Text>
-          <Switch value={isCondominio} onValueChange={setIsCondominio} />
+          <Switch
+            value={isCondominio}
+            onValueChange={(value) => {
+              setIsCondominio(value);
+              handleInputChange("isCondominio", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Quincho</Text>
-          <Switch value={isQuincho} onValueChange={setIsQuincho} />
+          <Switch
+            value={isQuincho}
+            onValueChange={(value) => {
+              setIsQuincho(value);
+              handleInputChange("isQuincho", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Calefacción</Text>
-          <Switch value={isCalefaccion} onValueChange={setIsCalefaccion} />
+          <Switch
+            value={isCalefaccion}
+            onValueChange={(value) => {
+              setIsCalefaccion(value);
+              handleInputChange("isCalefaccion", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Conserje</Text>
-          <Switch value={isConserje} onValueChange={setIsConserje} />
+          <Switch
+            value={isConserje}
+            onValueChange={(value) => {
+              setIsConserje(value);
+              handleInputChange("isConserje", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Ascensor</Text>
-          <Switch value={isAscensor} onValueChange={setIsAscensor} />
+          <Switch
+            value={isAscensor}
+            onValueChange={(value) => {
+              setIsAscensor(value);
+              handleInputChange("isAscensor", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Gimnasio</Text>
-          <Switch value={isGym} onValueChange={setIsGym} />
+          <Switch
+            value={isGym}
+            onValueChange={(value) => {
+              setIsGym(value);
+              handleInputChange("isGym", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Basquetbol</Text>
-          <Switch value={isBasketball} onValueChange={setIsBasketball} />
+          <Switch
+            value={isBasketball}
+            onValueChange={(value) => {
+              setIsBasketball(value);
+              handleInputChange("isBasketball", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Tenis</Text>
-          <Switch value={isTennis} onValueChange={setIsTennis} />
+          <Switch
+            value={isTennis}
+            onValueChange={(value) => {
+              setIsTennis(value);
+              handleInputChange("isTennis", value);
+            }}
+          />
 
-          <Text style={CommonStyles.formLabel}>Futbol</Text>
-          <Switch value={isSoccer} onValueChange={setIsSoccer} />
+          <Text style={CommonStyles.formLabel}>Fútbol</Text>
+          <Switch
+            value={isSoccer}
+            onValueChange={(value) => {
+              setIsSoccer(value);
+              handleInputChange("isSoccer", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Paddle</Text>
-          <Switch value={isPaddle} onValueChange={setIsPaddle} />
+          <Switch
+            value={isPaddle}
+            onValueChange={(value) => {
+              setIsPaddle(value);
+              handleInputChange("isPaddle", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Multicancha</Text>
-          <Switch value={isMultiSport} onValueChange={setIsMultiSport} />
+          <Switch
+            value={isMultiSport}
+            onValueChange={(value) => {
+              setIsMultiSport(value);
+              handleInputChange("isMultiSport", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Terraza</Text>
-          <Switch value={isTerrace} onValueChange={setIsTerrace} />
+          <Switch
+            value={isTerrace}
+            onValueChange={(value) => {
+              setIsTerrace(value);
+              handleInputChange("isTerrace", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Jacuzzi</Text>
-          <Switch value={isJacuzzi} onValueChange={setIsJacuzzi} />
+          <Switch
+            value={isJacuzzi}
+            onValueChange={(value) => {
+              setIsJacuzzi(value);
+              handleInputChange("isJacuzzi", value);
+            }}
+          />
 
-          <Text style={CommonStyles.formLabel}>Salon de fiestas</Text>
-          <Switch value={isParty} onValueChange={setIsParty} />
+          <Text style={CommonStyles.formLabel}>Salon de Fiestas</Text>
+          <Switch
+            value={isParty}
+            onValueChange={(value) => {
+              setIsParty(value);
+              handleInputChange("isParty", value);
+            }}
+          />
 
-          <Text style={CommonStyles.formLabel}>Balcón</Text>
-          <Switch value={isBalcony} onValueChange={setIsBalcony} />
+          <Text style={CommonStyles.formLabel}>Balcony</Text>
+          <Switch
+            value={isBalcony}
+            onValueChange={(value) => {
+              setIsBalcony(value);
+              handleInputChange("isBalcony", value);
+            }}
+          />
 
-          <Text style={CommonStyles.formLabel}>Area verde</Text>
-          <Switch value={isGreenArea} onValueChange={setIsGreenArea} />
+          <Text style={CommonStyles.formLabel}>Áreas verdes</Text>
+          <Switch
+            value={isGreenArea}
+            onValueChange={(value) => {
+              setIsGreenArea(value);
+              handleInputChange("isGreenArea", value);
+            }}
+          />
 
           <Text style={CommonStyles.formLabel}>Sauna</Text>
-          <Switch value={isSauna} onValueChange={setIsSauna} />
+          <Switch
+            value={isSauna}
+            onValueChange={(value) => {
+              setIsSauna(value);
+              handleInputChange("isSauna", value);
+            }}
+          />
 
-          <Text style={CommonStyles.formLabel}>Otra</Text>
+          <Text style={CommonStyles.formLabel}>Características adicionales</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Ingrese característica adicional"
+            placeholder="Características adicionales"
+            value={propertyData.additionalFeature}
+            onChangeText={(text) => handleInputChange("additionalFeature", text)}
           />
 
           <TouchableOpacity style={CommonStyles.button}>
             <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={CommonStyles.button}>
+          <TouchableOpacity
+            style={CommonStyles.button}
+            onPress={() => onSubmit()}
+          >
             <Text style={CommonStyles.buttonText}>Aplicar cambios</Text>
           </TouchableOpacity>
         </ScrollView>
