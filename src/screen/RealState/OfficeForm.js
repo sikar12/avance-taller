@@ -216,9 +216,10 @@ export default function Add() {
           <Text style={CommonStyles.formLabel}>Número</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Ingrese número"
             value={propertyData.number}
-            onChangeText={(text) => handleInputChange("number", text)}
+            onChangeText={(value) => handleInputChange("number", value)}
           />
 
           <Text style={CommonStyles.formLabel}>Descripción</Text>
@@ -235,15 +236,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min."
               value={propertyData.priceMin}
-              onChangeText={(text) => handleInputChange("priceMin", text)}
+              onChangeText={(value) => handleInputChange("priceMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max."
               value={propertyData.priceMax}
-              onChangeText={(text) => handleInputChange("priceMax", text)}
+              onChangeText={(value) => handleInputChange("priceMax", value)}
             />
           </View>
 
@@ -253,15 +256,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. baños"
               value={propertyData.bathroomMin}
-              onChangeText={(text) => handleInputChange("bathroomMin", text)}
+              onChangeText={(value) => handleInputChange("bathroomMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. baños"
               value={propertyData.bathroomMax}
-              onChangeText={(text) => handleInputChange("bathroomMax", text)}
+              onChangeText={(value) => handleInputChange("bathroomMax", value)}
             />
           </View>
 
@@ -271,15 +276,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceTotalMin}
-              onChangeText={(text) => handleInputChange("surfaceTotalMin", text)}
+              onChangeText={(value) => handleInputChange("surfaceTotalMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceTotalMax}
-              onChangeText={(text) => handleInputChange("surfaceTotalMax", text)}
+              onChangeText={(value) => handleInputChange("surfaceTotalMax", value)}
             />
           </View>
 
@@ -289,15 +296,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceUtilMin}
-              onChangeText={(text) => handleInputChange("surfaceUtilMin", text)}
+              onChangeText={(value) => handleInputChange("surfaceUtilMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceUtilMax}
-              onChangeText={(text) => handleInputChange("surfaceUtilMax", text)}
+              onChangeText={(value) => handleInputChange("surfaceUtilMax", value)}
             />
           </View>
 
@@ -307,21 +316,24 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceTerraceMin}
-              onChangeText={(text) => handleInputChange("surfaceTerraceMin", text)}
+              onChangeText={(value) => handleInputChange("surfaceTerraceMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceTerraceMax}
-              onChangeText={(text) => handleInputChange("surfaceTerraceMax", text)}
+              onChangeText={(value) => handleInputChange("surfaceTerraceMax", value)}
             />
           </View>
 
           <Text style={CommonStyles.formLabel}>Antigüedad</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Años"
             onChangeText={(value) => handleInputChange("antiquity", value)}
           />

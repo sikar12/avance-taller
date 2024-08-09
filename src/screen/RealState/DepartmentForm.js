@@ -17,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
+import { validateField, validateAllFields } from './Validations'; 
 
 export default function Add() {
   // Estado para los interruptores
@@ -103,10 +104,17 @@ export default function Add() {
   const navigation = useNavigation();
 
   const handleInputChange = (field, value) => {
-    setPropertyData({ ...propertyData, [field]: value });
-  };
+    const updatedPropertyData = { ...propertyData, [field]: value };
+    if (validateField(field, value, updatedPropertyData)) {
+        setPropertyData(updatedPropertyData);
+    }
+};
 
   const onSubmit = async () => {
+    if (!validateAllFields(propertyData)) {
+      Alert.alert("Error", "Por favor, corrija los errores en el formulario antes de enviar.");
+      return;
+    }
     try {
       await addDoc(collection(db, "properties"),{
       propertyData,
@@ -236,9 +244,10 @@ export default function Add() {
           <Text style={CommonStyles.formLabel}>Número</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Ingrese número"
             value={propertyData.number}
-            onChangeText={(text) => handleInputChange("number", text)}
+            onChangeText={(value) => handleInputChange("number", value)}
           />
 
           <Text style={CommonStyles.formLabel}>Descripción</Text>
@@ -255,15 +264,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min."
               value={propertyData.priceMin}
-              onChangeText={(text) => handleInputChange("priceMin", text)}
+              onChangeText={(value) => handleInputChange("priceMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max."
               value={propertyData.priceMax}
-              onChangeText={(text) => handleInputChange("priceMax", text)}
+              onChangeText={(value) => handleInputChange("priceMax", value)}
             />
           </View>
 
@@ -273,15 +284,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. habitaciones"
               value={propertyData.bedroomMin}
-              onChangeText={(text) => handleInputChange("bedroomMin", text)}
+              onChangeText={(value) => handleInputChange("bedroomMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. habitaciones"
               value={propertyData.bedroomMax}
-              onChangeText={(text) => handleInputChange("bedroomMax", text)}
+              onChangeText={(value) => handleInputChange("bedroomMax", value)}
             />
           </View>
 
@@ -291,15 +304,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. baños"
               value={propertyData.bathroomMin}
-              onChangeText={(text) => handleInputChange("bathroomMin", text)}
+              onChangeText={(value) => handleInputChange("bathroomMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. baños"
               value={propertyData.bathroomMax}
-              onChangeText={(text) => handleInputChange("bathroomMax", text)}
+              onChangeText={(value) => handleInputChange("bathroomMax", value)}
             />
           </View>
 
@@ -309,15 +324,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceTotalMin}
-              onChangeText={(text) => handleInputChange("surfaceTotalMin", text)}
+              onChangeText={(value) => handleInputChange("surfaceTotalMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceTotalMax}
-              onChangeText={(text) => handleInputChange("surfaceTotalMax", text)}
+              onChangeText={(value) => handleInputChange("surfaceTotalMax", value)}
             />
           </View>
 
@@ -327,15 +344,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceUtilMin}
-              onChangeText={(text) => handleInputChange("surfaceUtilMin", text)}
+              onChangeText={(value) => handleInputChange("surfaceUtilMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceUtilMax}
-              onChangeText={(text) => handleInputChange("surfaceUtilMax", text)}
+              onChangeText={(value) => handleInputChange("surfaceUtilMax", value)}
             />
           </View>
 
@@ -345,15 +364,17 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceTerraceMin}
-              onChangeText={(text) => handleInputChange("surfaceTerraceMin", text)}
+              onChangeText={(value) => handleInputChange("surfaceTerraceMin", value)}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceTerraceMax}
-              onChangeText={(text) => handleInputChange("surfaceTerraceMax", text)}
+              onChangeText={(value) => handleInputChange("surfaceTerraceMax", value)}
             />
           </View>
 
@@ -365,42 +386,47 @@ export default function Add() {
           >
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
               placeholder="Max"
               value={propertyData.occupantMax}
-              onChangeText={(text) => handleInputChange("occupantMax", text)}
+              onChangeText={(value) => handleInputChange("occupantMax", value)}
             />
           </View>
 
           <Text style={CommonStyles.formLabel}>Número de torre</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Número de Torre"
             value={propertyData.towerNumber}
-            onChangeText={(text) => handleInputChange("towerNumber", text)}
+            onChangeText={(value) => handleInputChange("towerNumber", value)}
           />
 
           <Text style={CommonStyles.formLabel}>Número de piso de la unidad</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Número de Piso"
             value={propertyData.floorNumber}
-            onChangeText={(text) => handleInputChange("floorNumber", text)}
+            onChangeText={(value) => handleInputChange("floorNumber", value)}
           />
 
           <Text style={CommonStyles.formLabel}>Departamentos por piso</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Número de departamentos"
             value={propertyData.departmentNumber}
-            onChangeText={(text) => handleInputChange("departmentNumber", text)}
+            onChangeText={(value) => handleInputChange("departmentNumber", value)}
           />
 
           <Text style={CommonStyles.formLabel}>Antigüedad</Text>
           <TextInput
             style={CommonStyles.input}
+            keyboardType="numeric"
             placeholder="Antigüedad"
             value={propertyData.antiquity}
-            onChangeText={(text) => handleInputChange("antiquity", text)}
+            onChangeText={(value) => handleInputChange("antiquity", value)}
           />
 
           <Text style={CommonStyles.formLabel}>Tipo de departamento</Text>
