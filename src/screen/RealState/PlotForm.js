@@ -19,14 +19,14 @@ import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 import validateFields from './FormValidations';
 import regions from '../../utils/regions';
+import ImagePickerComponent from './ImagePickerComponent';  // Importa el componente de selección de imágenes
 
 export default function Add() {
   // Estado para los interruptores
   const [isGreenArea, setIsGreenArea] = useState(false);
   const [propertyStatus, setPropertyStatus] = useState("");
   const [propertyCondition, setPropertyCondition] = useState("");
-
-
+  const [selectedImages, setSelectedImages] = useState([]);  // Estado para las imágenes seleccionadas
 
   const [propertyData, setPropertyData] = useState({
     street: "",
@@ -78,6 +78,7 @@ export default function Add() {
           propertyStatus,
           propertyCondition,
           formState,
+          images: selectedImages,  // Incluye las imágenes seleccionadas
         });
         Alert.alert("Propiedad creada exitosamente");
         navigation.goBack();
@@ -91,6 +92,7 @@ export default function Add() {
       Alert.alert("Errores en el formulario", "Por favor, corrige los errores antes de enviar.");
     }
   };
+
   const renderOptionButton = (label, value, currentValue, setValue) => (
     <TouchableOpacity
       style={[
@@ -109,6 +111,13 @@ export default function Add() {
       </Text>
     </TouchableOpacity>
   );
+
+  const handleInputChange = (field, value) => {
+    setPropertyData({
+      ...propertyData,
+      [field]: value,
+    });
+  };
 
   return (
     <ImageBackground
@@ -267,36 +276,36 @@ export default function Add() {
           <TextInput
             style={CommonStyles.input}
             keyboardType="numeric"
-            placeholder="Antigüedad"
+            placeholder="Ingrese antigüedad"
             value={propertyData.antiquity}
-            onChangeText={(value) => handleInputChange("antiquity", value)}
+            onChangeText={(text) => handleInputChange("antiquity", text)}
           />
 
-          <Text style={CommonStyles.formLabel}>Áreas verdes</Text>
-          <Switch
-            value={isGreenArea}
-            onValueChange={(value) => {
-              setIsGreenArea(value);
-              handleInputChange("isGreenArea", value);
-            }}
-          />
-
-          <Text style={CommonStyles.formLabel}>Características adicionales</Text>
+          <Text style={CommonStyles.formLabel}>Característica adicional</Text>
           <TextInput
             style={CommonStyles.input}
-            placeholder="Características adicionales"
+            placeholder="Ingrese característica adicional"
             value={propertyData.additionalFeature}
             onChangeText={(text) => handleInputChange("additionalFeature", text)}
           />
 
+          <View style={styles.switchContainer}>
+            <Text>Tiene área verde:</Text>
+            <Switch
+              value={isGreenArea}
+              onValueChange={(value) => {
+                setIsGreenArea(value);
+                handleInputChange('isGreenArea', value);
+              }}
+            />
+          </View>
+
           <TouchableOpacity style={CommonStyles.button}>
-            <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
+          <ImagePickerComponent onImagesSelected={(images) => setSelectedImages([...selectedImages, images])} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={CommonStyles.button}
-            onPress={() => onSubmit()}
-          >
+
+          <TouchableOpacity style={CommonStyles.button} onPress={onSubmit}>
             <Text style={CommonStyles.buttonText}>Aplicar cambios</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -339,8 +348,8 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   homebutton: {
-    width: "15%", // Ajusta el ancho de la imagen
-    height: "5%", // Ajusta la altura de la image
+    width: "15%",
+    height: "5%",
     top: -120,
     left: 10,
     Radius: 50,

@@ -19,6 +19,7 @@ import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 import validateFields from './FormValidations'; 
 import regions from '../../utils/regions';
+import ImagePickerComponent from './ImagePickerComponent'; 
 
 export default function Add() {
   // Estado para los interruptores
@@ -46,6 +47,7 @@ export default function Add() {
   const [isParty, setIsParty] = useState(false);
   const [isBalcony, setIsBalcony] = useState(false);
   const [isSauna, setIsSauna] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]); 
 
 
   const [propertyData, setPropertyData] = useState({
@@ -136,6 +138,7 @@ export default function Add() {
           propertyCondition,
           propertyOrientation,
           formState,
+          images: selectedImages,
         });
         Alert.alert("Propiedad creada exitosamente");
         navigation.goBack();
@@ -685,7 +688,7 @@ export default function Add() {
           />
 
           <TouchableOpacity style={CommonStyles.button}>
-            <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
+          <ImagePickerComponent onImagesSelected={(images) => setSelectedImages([...selectedImages, images])} />
           </TouchableOpacity>
 
           <TouchableOpacity

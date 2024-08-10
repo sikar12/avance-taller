@@ -19,6 +19,7 @@ import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 import validateFields from './FormValidations'; 
 import regions from '../../utils/regions';
+import ImagePickerComponent from './ImagePickerComponent';
 
 export default function Add() {
   // Estado para los interruptores
@@ -48,6 +49,7 @@ export default function Add() {
   const [isBalcony, setIsBalcony] = useState(false);
   const [isSauna, setIsSauna] = useState(false);
   const [isMascotas, setIsMascotas] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]); 
 
 
   const [propertyData, setPropertyData] = useState({
@@ -144,6 +146,7 @@ const onSubmit = async () => {
         propertyOrientation,
         propertyDepartment,
         formState,
+        images: selectedImages,
       });
       Alert.alert("Propiedad creada exitosamente");
       navigation.goBack();
@@ -156,6 +159,11 @@ const onSubmit = async () => {
     console.log('Errores de validación:', validationErrors);
     Alert.alert("Errores en el formulario", "Por favor, corrige los errores antes de enviar.");
   }
+};
+
+const convertToNumber = (value) => {
+  const num = Number(value);
+  return isNaN(num) ? '' : num; // Retorna un string vacío si no es un número válido
 };
 
   const renderOptionButton = (label, value, currentValue, setValue) => (
@@ -301,6 +309,7 @@ const onSubmit = async () => {
               placeholder="Mínimo"
               value={formState.priceMin}
               onChangeText={(value) => setFormState({ ...formState, priceMin: value })}
+              onBlur={() => handleInputChange('priceMin', convertToNumber(formState.priceMin))}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
@@ -308,6 +317,7 @@ const onSubmit = async () => {
               placeholder="Máximo"
               value={formState.priceMax}
               onChangeText={(value) => setFormState({ ...formState, priceMax: value })}
+              onBlur={() => handleInputChange('priceMax', convertToNumber(formState.priceMax))}
             />
           </View>
 
@@ -321,6 +331,7 @@ const onSubmit = async () => {
               placeholder="Min. habitaciones"
               value={formState.bedroomMin}
               onChangeText={(value) => setFormState({ ...formState, bedroomMin: value })}
+              onBlur={() => handleInputChange('bedroomMin', convertToNumber(formState.bedroomMin))}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
@@ -328,6 +339,7 @@ const onSubmit = async () => {
               placeholder="Max. habitaciones"
               value={formState.bedroomMax}
               onChangeText={(value) => setFormState({ ...formState, bedroomMax: value })}
+              onBlur={() => handleInputChange('bedroomMax', convertToNumber(formState.bedroomMax))}
             />
           </View>
 
@@ -341,6 +353,7 @@ const onSubmit = async () => {
               placeholder="Min. baños"
               value={formState.bathroomMin}
               onChangeText={(value) => setFormState({ ...formState, bathroomMin: value })}
+              onBlur={() => handleInputChange('bathroomMin', convertToNumber(formState.bathroomMin))}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
@@ -348,6 +361,7 @@ const onSubmit = async () => {
               placeholder="Max. baños"
               value={formState.bathroomMax}
               onChangeText={(value) => setFormState({ ...formState, bathroomMax: value })}
+              onBlur={() => handleInputChange('bathroomMax', convertToNumber(formState.bathroomMax))}
             />
           </View>
 
@@ -361,6 +375,7 @@ const onSubmit = async () => {
               placeholder="Min. m²"
               value={formState.surfaceTotalMin}
               onChangeText={(value) => setFormState({ ...formState, surfaceTotalMin: value })}
+              onBlur={() => handleInputChange('surfaceTotalMin', convertToNumber(formState.surfaceTotalMin))}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
@@ -368,6 +383,7 @@ const onSubmit = async () => {
               placeholder="Max. m²"
               value={formState.surfaceTotalMax}
               onChangeText={(value) => setFormState({ ...formState, surfaceTotalMax: value })}
+              onBlur={() => handleInputChange('surfaceTotalMax', convertToNumber(formState.surfaceTotalMax))}
             />
           </View>
 
@@ -381,6 +397,7 @@ const onSubmit = async () => {
               placeholder="Min. m²"
               value={formState.surfaceUtilMin}
               onChangeText={(value) => setFormState({ ...formState, surfaceUtilMin: value })}
+              onBlur={() => handleInputChange('surfaceUtilMin', convertToNumber(formState.surfaceUtilMin))}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
@@ -388,6 +405,7 @@ const onSubmit = async () => {
               placeholder="Max. m²"
               value={formState.surfaceUtilMax}
               onChangeText={(value) => setFormState({ ...formState, surfaceUtilMax: value })}
+              onBlur={() => handleInputChange('surfaceUtilMax', convertToNumber(formState.surfaceUtilMax))}
             />
           </View>
 
@@ -785,7 +803,7 @@ const onSubmit = async () => {
           />
 
           <TouchableOpacity style={CommonStyles.button}>
-            <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
+          <ImagePickerComponent onImagesSelected={(images) => setSelectedImages([...selectedImages, images])} />
           </TouchableOpacity>
 
           <TouchableOpacity

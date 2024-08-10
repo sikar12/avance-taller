@@ -20,6 +20,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import validateFields from "./FormValidations";
 import regions from "../../utils/regions";
 import { Picker } from "@react-native-picker/picker";
+import ImagePickerComponent from './ImagePickerComponent';
 
 export default function Add() {
   // Estado para los interruptores
@@ -30,6 +31,7 @@ export default function Add() {
   const [propertyStatus, setPropertyStatus] = useState("");
   const [propertyCondition, setPropertyCondition] = useState("");
   const [propertyOrientation, setPropertyOrientation] = useState("");
+  const [selectedImages, setSelectedImages] = useState([]);
 
   const [propertyData, setPropertyData] = useState({
     street: "",
@@ -97,6 +99,7 @@ export default function Add() {
           propertyCondition,
           propertyOrientation,
           formState,
+          images: selectedImages, 
         });
         Alert.alert("Propiedad creada exitosamente");
         navigation.goBack();
@@ -464,7 +467,7 @@ export default function Add() {
           />
 
           <TouchableOpacity style={CommonStyles.button}>
-            <Text style={CommonStyles.buttonText}>Editar fotografías</Text>
+            <ImagePickerComponent onImagesSelected={(images) => setSelectedImages([...selectedImages, images])} />
           </TouchableOpacity>
 
           <TouchableOpacity

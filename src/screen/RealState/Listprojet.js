@@ -48,33 +48,26 @@ export default function ListProjet() {
               {item.street && <Text>Calle: {item.street}</Text>}
               {item.number && <Text>Número: {item.number}</Text>}
               {item.antiquity && <Text>Antigüedad: {item.antiquity}</Text>}
-              {item.value && <Text>Valor: {item.value}</Text>}
-              {item.surface && <Text>Superficie: {item.surface}</Text>}
-              {item.description && <Text>Descripción: {item.description}</Text>}
-              {item.status && <Text>Estado: {item.status}</Text>}
-              {item.towerNumber && (
-                <Text>Número de Torre: {item.towerNumber}</Text>
+              {item.formState?.value && <Text>Valor: {item.formState.value}</Text>}
+              {item.formState?.surfaceTotalMax && (
+                <Text>Superficie Máxima: {item.formState.surfaceTotalMax} </Text>
               )}
-              {item.surfaceTotalMax && (
-                <Text>Superficie Máxima: {item.surfaceTotalMax} </Text>
+              {item.formState?.surfaceTotalMin && (
+                <Text>Superficie Mínima: {item.formState.surfaceTotalMin}</Text>
               )}
-              {item.surfaceTotalMin && (
-                <Text>Superficie Mínima: {item.surfaceTotalMin}</Text>
+              {item.formState?.surfaceUtilMax && (
+                <Text>Superficie Útil Máxima: {item.formState.surfaceUtilMax}</Text>
               )}
-              {item.surfaceUtilMax && (
-                <Text>Superficie Útil Máxima: {item.surfaceUtilMax}</Text>
+              {item.formState?.surfaceUtilMin && (
+                <Text>Superficie Útil Mínima: {item.formState.surfaceUtilMin} </Text>
               )}
-              {item.surfaceUtilMin && (
-                <Text>Superficie Útil Mínima: {item.surfaceUtilMin} </Text>
-              )}
-              {item.priceMax && <Text>Precio Máximo: {item.priceMax} </Text>}
-              {item.priceMin && <Text>Precio Mínimo: {item.priceMin}</Text>}
-              <Text>
-                Estacionamiento: {item.isEstacionamiento ? "Sí" : "No"}
-              </Text>
-              <Text>Calefacción: {item.isCalefaccion ? "Sí" : "No"}</Text>
-              <Text>Ascensor: {item.isAscensor ? "Sí" : "No"}</Text>
-              <Text>Área Verde: {item.isGreenArea ? "Sí" : "No"}</Text>
+              {item.formState?.priceMax && <Text>Precio Máximo: {item.formState.priceMax} </Text>}
+              {item.formState?.priceMin && <Text>Precio Mínimo: {item.formState.priceMin}</Text>}
+              <Text>Estacionamiento: {item.formState?.isEstacionamiento ? "Sí" : "No"}</Text>
+              <Text>Calefacción: {item.formState?.isCalefaccion ? "Sí" : "No"}</Text>
+              <Text>Ascensor: {item.formState?.isAscensor ? "Sí" : "No"}</Text>
+              <Text>Área Verde: {item.formState?.isGreenArea ? "Sí" : "No"}</Text>
+              {/* Agrega más campos aquí según sea necesario */}
             </View>
           ))}
         </ScrollView>
