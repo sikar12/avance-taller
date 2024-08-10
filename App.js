@@ -14,6 +14,7 @@ import MenuButton from "./src/screen/RealState/Menu";
 import Add from "./src/screen/RealState/Addproject";
 import Addproject from "./src/screen/RealState/Addproject";
 import { Firestore } from "firebase/app";
+import ListProjet from "./src/screen/RealState/Listprojet";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,7 @@ export default function App() {
         <Stack.Screen name="Home" component={Homemaps} />
         <Stack.Screen name="Add" component={Addproject} />
         <Stack.Screen name="CRUD" component={CRUD} />
+        <Stack.Screen name="Pllist" component={ListProjet} />
         <Stack.Screen name="DeleteP" component={DeleteP} />
         <Stack.Screen name="UpdateProp" component={UpdateProp} />
       </Stack.Navigator>

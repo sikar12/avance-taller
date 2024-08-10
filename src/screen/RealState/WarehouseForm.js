@@ -50,7 +50,7 @@ export default function Add() {
     isGreenArea: false,
     propertyStatus: "",
     propertyCondition: "",
-    propertyOrientation: ""
+    propertyOrientation: "",
   });
 
   const navigation = useNavigation();
@@ -61,7 +61,7 @@ export default function Add() {
 
   const onSubmit = async () => {
     try {
-      await addDoc(collection(db, "properties"),{
+      await addDoc(collection(db, "properties"), {
         propertyData,
         propertyStatus,
         propertyCondition,
@@ -230,7 +230,9 @@ export default function Add() {
               keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceTotalMin}
-              onChangeText={(value) => handleInputChange("surfaceTotalMin", value)}
+              onChangeText={(value) =>
+                handleInputChange("surfaceTotalMin", value)
+              }
             />
 
             <TextInput
@@ -238,7 +240,9 @@ export default function Add() {
               keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceTotalMax}
-              onChangeText={(value) => handleInputChange("surfaceTotalMax", value)}
+              onChangeText={(value) =>
+                handleInputChange("surfaceTotalMax", value)
+              }
             />
           </View>
 
@@ -251,14 +255,18 @@ export default function Add() {
               keyboardType="numeric"
               placeholder="Min. m²"
               value={propertyData.surfaceUtilMin}
-              onChangeText={(value) => handleInputChange("surfaceUtilMin", value)}
+              onChangeText={(value) =>
+                handleInputChange("surfaceUtilMin", value)
+              }
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               keyboardType="numeric"
               placeholder="Max. m²"
               value={propertyData.surfaceUtilMax}
-              onChangeText={(value) => handleInputChange("surfaceUtilMax", value)}
+              onChangeText={(value) =>
+                handleInputChange("surfaceUtilMax", value)
+              }
             />
           </View>
 
@@ -271,7 +279,9 @@ export default function Add() {
             onChangeText={(value) => handleInputChange("towerNumber", value)}
           />
 
-          <Text style={CommonStyles.formLabel}>Número de piso de la unidad</Text>
+          <Text style={CommonStyles.formLabel}>
+            Número de piso de la unidad
+          </Text>
           <TextInput
             style={CommonStyles.input}
             keyboardType="numeric"
@@ -347,7 +357,6 @@ export default function Add() {
             )}
           </View>
 
-
           <Text style={CommonStyles.formLabel}>Estacionamiento</Text>
           <Switch
             value={isEstacionamiento}
@@ -384,12 +393,16 @@ export default function Add() {
             }}
           />
 
-          <Text style={CommonStyles.formLabel}>Características adicionales</Text>
+          <Text style={CommonStyles.formLabel}>
+            Características adicionales
+          </Text>
           <TextInput
             style={CommonStyles.input}
             placeholder="Características adicionales"
             value={propertyData.additionalFeature}
-            onChangeText={(text) => handleInputChange("additionalFeature", text)}
+            onChangeText={(text) =>
+              handleInputChange("additionalFeature", text)
+            }
           />
 
           <TouchableOpacity style={CommonStyles.button}>
@@ -407,7 +420,6 @@ export default function Add() {
     </ImageBackground>
   );
 }
-
 
 const styles = StyleSheet.create({
   scrollContainer: {
@@ -473,4 +485,3 @@ const styles = StyleSheet.create({
     left: "225%",
   },
 });
-
