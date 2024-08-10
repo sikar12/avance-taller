@@ -17,6 +17,7 @@ import { useNavigation } from "@react-navigation/native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
+import validateFields from './FormValidations';
 
 export default function Add() {
   // Estado para los interruptores
@@ -43,27 +44,53 @@ export default function Add() {
     propertyCondition: "",
   });
 
+  const [formState, setFormState] = useState({
+    priceMin: '',
+    priceMax: '',
+    bedroomMin: '',
+    bedroomMax: '',
+    bathroomMin: '',
+    bathroomMax: '',
+    surfaceTotalMin: '',
+    surfaceTotalMax: '',
+    surfaceUtilMin: '',
+    surfaceTerraceMin: '',
+    surfaceTerraceMax: '',
+  });
+  
+  const [errors, setErrors] = useState({});
+
   const navigation = useNavigation();
 
-  const handleInputChange = (field, value) => {
-    setPropertyData({ ...propertyData, [field]: value });
-  };
-
   const onSubmit = async () => {
-    try {
-      await addDoc(collection(db, "properties"),{
-        propertyData,
-        propertyStatus,
-        propertyCondition,
-      });
-      Alert.alert("Propiedad creada exitosamente");
-      navigation.goBack();
-    } catch (error) {
-      console.log("Error al crear la propiedad:", error);
-      Alert.alert("Error al crear la propiedad");
+    // Realiza las validaciones primero
+    const validationErrors = validateFields(formState);
+    setErrors(validationErrors);
+  
+    // Verifica si hay errores de validación
+    if (Object.values(validationErrors).every((error) => !error)) {
+      // Si no hay errores, intenta enviar el formulario
+      try {
+        await addDoc(collection(db, "properties"), {
+          propertyData,
+          propertyStatus,
+          propertyCondition,
+          propertyOrientation,
+          propertyDepartment,
+          formState,
+        });
+        Alert.alert("Propiedad creada exitosamente");
+        navigation.goBack();
+      } catch (error) {
+        console.log("Error al crear la propiedad:", error);
+        Alert.alert("Error al crear la propiedad");
+      }
+    } else {
+      // Si hay errores, muestra los errores (ya están siendo manejados por setErrors)
+      console.log('Errores de validación:', validationErrors);
+      Alert.alert("Errores en el formulario", "Por favor, corrige los errores antes de enviar.");
     }
   };
-
   const renderOptionButton = (label, value, currentValue, setValue) => (
     <TouchableOpacity
       style={[
@@ -189,6 +216,7 @@ export default function Add() {
             value={propertyData.description}
             onChangeText={(text) => handleInputChange("description", text)}
           />
+
           <Text style={CommonStyles.formLabel}>Precio</Text>
           <View
             style={{ flexDirection: "row", justifyContent: "space-between" }}
@@ -196,16 +224,16 @@ export default function Add() {
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               keyboardType="numeric"
-              placeholder="Min."
-              value={propertyData.priceMin}
-              onChangeText={(value) => handleInputChange("priceMin", value)}
+              placeholder="Mínimo"
+              value={formState.priceMin}
+              onChangeText={(value) => setFormState({ ...formState, priceMin: value })}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               keyboardType="numeric"
-              placeholder="Max."
-              value={propertyData.priceMax}
-              onChangeText={(value) => handleInputChange("priceMax", value)}
+              placeholder="Máximo"
+              value={formState.priceMax}
+              onChangeText={(value) => setFormState({ ...formState, priceMax: value })}
             />
           </View>
 
@@ -217,15 +245,15 @@ export default function Add() {
               style={[CommonStyles.input, { flex: 1, marginRight: 5 }]}
               keyboardType="numeric"
               placeholder="Min. m²"
-              value={propertyData.surfaceTotalMin}
-              onChangeText={(value) => handleInputChange("surfaceTotalMin", value)}
+              value={formState.surfaceTotalMin}
+              onChangeText={(value) => setFormState({ ...formState, surfaceTotalMin: value })}
             />
             <TextInput
               style={[CommonStyles.input, { flex: 1, marginLeft: 5 }]}
               keyboardType="numeric"
               placeholder="Max. m²"
-              value={propertyData.surfaceTotalMax}
-              onChangeText={(value) => handleInputChange("surfaceTotalMax", value)}
+              value={formState.surfaceTotalMax}
+              onChangeText={(value) => setFormState({ ...formState, surfaceTotalMax: value })}
             />
           </View>
 
