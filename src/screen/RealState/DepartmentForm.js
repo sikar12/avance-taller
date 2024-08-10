@@ -244,26 +244,26 @@ const onSubmit = async () => {
           </View>
 
           <Text>Región</Text>
-      <Picker
-        selectedValue={propertyData.region}
-        style={styles.inputContainer}
-        onValueChange={(itemValue) => handleInputChange('region', itemValue)}
-      >
-        {regions.map((region) => (
-          <Picker.Item key={region.name} label={region.name} value={region.name} />
-        ))}
-      </Picker>
-      <Text>Comuna</Text>
-      <Picker
-        selectedValue={propertyData.commune}
-        style={styles.inputContainer}
-        onValueChange={(itemValue) => handleInputChange('commune', itemValue)}
-      >
-        {regions
-          .find((region) => region.name === propertyData.region)?.communes.map((commune) => (
-            <Picker.Item key={commune} label={commune} value={commune} />
-          ))}
-      </Picker>
+          <Picker
+            selectedValue={propertyData.region}
+            style={styles.inputContainer}
+            onValueChange={(itemValue) => handleInputChange('region', itemValue)}
+          >
+            {regions.map((region) => (
+              <Picker.Item key={region.name} label={region.name} value={region.name} />
+            ))}
+          </Picker>
+          <Text>Comuna</Text>
+          <Picker
+            selectedValue={propertyData.commune}
+            style={styles.inputContainer}
+            onValueChange={(itemValue) => handleInputChange('commune', itemValue)}
+          >
+            {regions
+              .find((region) => region.name === propertyData.region)?.communes.map((commune) => (
+                <Picker.Item key={commune} label={commune} value={commune} />
+              ))}
+          </Picker>
 
           <Text style={CommonStyles.formLabel}>Calle</Text>
           <TextInput

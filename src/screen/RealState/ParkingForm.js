@@ -84,8 +84,6 @@ export default function Add() {
           propertyData,
           propertyStatus,
           propertyCondition,
-          propertyOrientation,
-          propertyDepartment,
           formState,
         });
         Alert.alert("Propiedad creada exitosamente");

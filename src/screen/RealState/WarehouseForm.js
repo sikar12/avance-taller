@@ -20,6 +20,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import validateFields from "./FormValidations";
 import regions from "../../utils/regions";
 import { Picker } from "@react-native-picker/picker";
+
 export default function Add() {
   // Estado para los interruptores
   const [isEstacionamiento, setIsEstacionamiento] = useState(false);
@@ -73,6 +74,13 @@ export default function Add() {
 
   const navigation = useNavigation();
 
+  const handleInputChange = (field, value) => {
+    const updatedPropertyData = { ...propertyData, [field]: value };
+    if (validateFields(field, value, updatedPropertyData)) {
+        setPropertyData(updatedPropertyData);
+    }
+};
+
   const onSubmit = async () => {
     // Realiza las validaciones primero
     const validationErrors = validateFields(formState);
@@ -87,7 +95,6 @@ export default function Add() {
           propertyStatus,
           propertyCondition,
           propertyOrientation,
-          propertyDepartment,
           formState,
         });
         Alert.alert("Propiedad creada exitosamente");
