@@ -18,6 +18,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../utils/firebase";
 import CommonStyles from "../../utils/CommonStyles";
 import validateFields from './FormValidations'; 
+import regions from '../../utils/regions';
 
 export default function Add() {
   // Estado para los interruptores
@@ -237,21 +238,27 @@ export default function Add() {
             )}
           </View>
 
-          <Text style={CommonStyles.formLabel}>Región</Text>
-          <TextInput
-            style={CommonStyles.input}
-            placeholder="Ingrese región"
-            value={propertyData.region}
-            onChangeText={(text) => handleInputChange("region", text)}
-          />
-
-          <Text style={CommonStyles.formLabel}>Comuna</Text>
-          <TextInput
-            style={CommonStyles.input}
-            placeholder="Ingrese comuna"
-            value={propertyData.commune}
-            onChangeText={(text) => handleInputChange("commune", text)}
-          />
+          <Text>Región</Text>
+          <Picker
+            selectedValue={propertyData.region}
+            style={styles.inputContainer}
+            onValueChange={(itemValue) => handleInputChange('region', itemValue)}
+          >
+            {regions.map((region) => (
+              <Picker.Item key={region.name} label={region.name} value={region.name} />
+            ))}
+          </Picker>
+          <Text>Comuna</Text>
+          <Picker
+            selectedValue={propertyData.commune}
+            style={styles.inputContainer}
+            onValueChange={(itemValue) => handleInputChange('commune', itemValue)}
+          >
+            {regions
+              .find((region) => region.name === propertyData.region)?.communes.map((commune) => (
+                <Picker.Item key={commune} label={commune} value={commune} />
+              ))}
+          </Picker>
 
           <Text style={CommonStyles.formLabel}>Calle</Text>
           <TextInput
