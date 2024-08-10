@@ -117,8 +117,9 @@ export default function Add() {
     if (Object.values(validationErrors).every((error) => !error)) {
       // Si no hay errores, intenta enviar el formulario
       try {
-        await addDoc(collection(db, "office"), {
-          propertyData,
+        await addDoc(collection(db, "properties"), {
+          ...propertyData,
+          type: "Oficina",
           propertyStatus,
           propertyCondition,
           propertyOrientation,

@@ -19,7 +19,11 @@ export default function ListProjet() {
         const querySnapshot = await getDocs(collection(db, "properties"));
         const data = querySnapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data().propertyData, // Accede a los datos anidados
+          ...doc.data().propertyData,
+          ...doc.data().formState,
+          ...doc.data().propertyStatus,
+          ...doc.data().propertyCondition,
+          ...doc.data().propertyDepartment,
         }));
         setData(data);
       } catch (error) {
