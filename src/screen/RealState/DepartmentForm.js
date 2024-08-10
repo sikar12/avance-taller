@@ -135,7 +135,7 @@ const onSubmit = async () => {
   if (Object.values(validationErrors).every((error) => !error)) {
     // Si no hay errores, intenta enviar el formulario
     try {
-      await addDoc(collection(db, "properties"), {
+      await addDoc(collection(db, "department"), {
         propertyData,
         propertyStatus,
         propertyCondition,

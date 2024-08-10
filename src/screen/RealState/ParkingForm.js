@@ -79,7 +79,7 @@ export default function Add() {
     if (Object.values(validationErrors).every((error) => !error)) {
       // Si no hay errores, intenta enviar el formulario
       try {
-        await addDoc(collection(db, "properties"), {
+        await addDoc(collection(db, "parking"), {
           propertyData,
           propertyStatus,
           propertyCondition,
