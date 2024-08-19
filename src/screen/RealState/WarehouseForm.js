@@ -20,7 +20,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import validateFields from "./FormValidations";
 import regions from "../../utils/regions";
 import { Picker } from "@react-native-picker/picker";
-import ImagePickerComponent from './ImagePickerComponent';
+import ImagePickerComponent from "./ImagePickerComponent";
 
 export default function Add() {
   // Estado para los interruptores
@@ -79,9 +79,9 @@ export default function Add() {
   const handleInputChange = (field, value) => {
     const updatedPropertyData = { ...propertyData, [field]: value };
     if (validateFields(field, value, updatedPropertyData)) {
-        setPropertyData(updatedPropertyData);
+      setPropertyData(updatedPropertyData);
     }
-};
+  };
 
   const onSubmit = async () => {
     // Realiza las validaciones primero
@@ -99,7 +99,7 @@ export default function Add() {
           propertyCondition,
           propertyOrientation,
           formState,
-          images: selectedImages, 
+          images: selectedImages,
         });
         Alert.alert("Propiedad creada exitosamente");
         navigation.goBack();
@@ -467,7 +467,11 @@ export default function Add() {
           />
 
           <TouchableOpacity style={CommonStyles.button}>
-            <ImagePickerComponent onImagesSelected={(images) => setSelectedImages([...selectedImages, images])} />
+            <ImagePickerComponent
+              onImagesSelected={(images) =>
+                setSelectedImages([...selectedImages, images])
+              }
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
