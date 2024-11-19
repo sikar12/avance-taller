@@ -15,6 +15,10 @@ import Add from "./src/screen/RealState/Addproject";
 import Addproject from "./src/screen/RealState/Addproject";
 import { Firestore } from "firebase/app";
 import ListProjet from "./src/screen/RealState/Listprojet";
+import Loggin from "./src/screen/Loggin/Homelogg";
+import Register from "./src/screen/Loggin/Register";
+import Form_np from "./src/screen/Loggin/Form_np";
+import Verification from "./src/screen/Loggin/Verification";
 
 const Stack = createNativeStackNavigator();
 
@@ -34,7 +38,11 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={Homemaps} />
+        <Stack.Screen name="Loggin" component={Loggin} />
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Form_np" component={Form_np} />
+        <Stack.Screen name="Verification" component={Verification} />
+        <Stack.Screen name="Home" component={Homemaps} />                                                     
         <Stack.Screen name="Add" component={Addproject} />
         <Stack.Screen name="CRUD" component={CRUD} />
         <Stack.Screen name="Pllist" component={ListProjet} />

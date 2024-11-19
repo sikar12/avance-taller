@@ -3,17 +3,18 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAHBNbJAt9pZ_vUFK9-M9JA3xmBYsIveUU",
+  apiKey: "AIzaSyCTP9EsaDXWdvNoEOb1M0bZsoC0q6IZOaE",
 
-  authDomain: "database-a9ca1.firebaseapp.com",
+  authDomain: "pruebasloggin-ecf50.firebaseapp.com",
 
-  projectId: "database-a9ca1",
+  projectId: "pruebasloggin-ecf50",
 
-  storageBucket: "database-a9ca1.appspot.com",
+  storageBucket: "pruebasloggin-ecf50.firebasestorage.app",
 
-  messagingSenderId: "795821529731",
+  messagingSenderId: "215402617688",
 
-  appId: "1:795821529731:web:61649e5d1d887b6e91d9b6",
+  appId: "1:215402617688:web:a3e994d7e561c72f81a32d"
+
 };
 
 // Initialize Firebase
