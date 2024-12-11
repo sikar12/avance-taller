@@ -49,9 +49,9 @@ const Register = () => {
         </TouchableOpacity>
 
         <View style={styles.row}>
-          <Text style={styles.transparentText}>¿Ya tienes cuenta?  </Text>
+          <Text style={styles.transparentText}>¿Ya tienes cuena?</Text>
           <TouchableOpacity>
-            <Text>Inicia sesión</Text>
+            <Text style ={styles.texto3}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>
 
@@ -134,11 +134,16 @@ const styles = StyleSheet.create({
   left: "30%",
   },
 
+  texto3: {
+   
+    left: "65%",
+  },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
     margin: "10%",
-    left: "5%",
+    left: "-5%",
     top: "10%",
   },
   

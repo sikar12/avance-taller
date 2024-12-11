@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,16 +6,81 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  ScrollView,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
-import { useNavigation } from "@react-navigation/native";
+import * as DocumentPicker from "expo-document-picker";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function Verification() {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileUrl, setFileUrl] = useState("");
+
+  const handleSelectFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ],
+        copyToCacheDirectory: true,
+      });
+      console.log("Archivo seleccionado:", result);
+
+      if (result.type === "success") {
+        const allowedExtensions = ["pdf", "doc", "docx"];
+        const fileExtension = result.name.split(".").pop().toLowerCase();
+
+        // Validación de extensión
+        if (!allowedExtensions.includes(fileExtension)) {
+          Alert.alert("Error", "El tipo de archivo no es permitido.");
+          return;
+        }
+
+        // Validación de tamaño
+        if (result.size > 5 * 1024 * 1024) {
+          Alert.alert(
+            "Error",
+            "El archivo supera el tamaño máximo permitido de 5MB."
+          );
+          return;
+        }
+
+        setSelectedFile(result);
+        Alert.alert("Archivo seleccionado", `Nombre: ${result.name}`);
+      } else {
+        console.log("Selección de archivo cancelada.");
+      }
+    } catch (error) {
+      console.error("Error al seleccionar archivo:", error);
+      Alert.alert("Error", "Hubo un problema al seleccionar el archivo.");
+    }
+  };
+
+  const handleUploadFile = async () => {
+    if (!selectedFile || !selectedFile.uri) {
+      Alert.alert("Error", "No se ha seleccionado un archivo válido.");
+      return;
+    }
+
+    try {
+      const response = await fetch(selectedFile.uri);
+      const blob = await response.blob();
+
+      const storage = getStorage(); // Inicializa Firebase Storage
+      const storageRef = ref(storage, `documents/${selectedFile.name}`);
+
+      await uploadBytes(storageRef, blob);
+      const url = await getDownloadURL(storageRef);
+
+      setFileUrl(url);
+      Alert.alert("Éxito", "Archivo subido correctamente.");
+    } catch (error) {
+      console.error("Error al subir archivo:", error);
+      Alert.alert("Error", "Hubo un problema al subir el archivo.");
+    }
+  };
+
   return (
     <ImageBackground
       style={styles.background}
@@ -27,21 +92,45 @@ export default function Verification() {
           source={require("../../../assets/images/INMOBINDER-03.png")}
         />
       </View>
-        
-        <View style = {styles.container}>
-          <Text style = {styles.title}>Verificación de perfil</Text>
-            <Text style = {styles.row}>Para poder verificar su perfil porfavor ingrese una fotocopia de su carnet 
-                por ambos lados </Text>
-            
-            <TouchableOpacity style={styles.buton}>
-                <Text style={styles.Text}> Selecionar archivo</Text>
-            </TouchableOpacity>
-        
-        <Text style ={styles.texto2}>Tipos de archivos permitidos: PDF, DOC, DOX</Text>
-        <Text style ={styles.texto2}>Tamaño máximo: 5MB</Text>
 
+      <View style={styles.container}>
+        <Text style={styles.title}>Verificación de perfil</Text>
+        <Text style={styles.row}>
+          Para poder verificar su perfil, por favor ingrese una fotocopia de su
+          carnet por ambos lados.
+        </Text>
 
-        </View>
+        <TouchableOpacity style={styles.buton} onPress={handleSelectFile}>
+          <Text style={styles.Text}>Seleccionar archivo</Text>
+        </TouchableOpacity>
+
+        {selectedFile && (
+          <Text style={styles.fileInfo}>
+            Archivo seleccionado: {selectedFile.name}
+          </Text>
+        )}
+
+        <TouchableOpacity style={styles.buton} onPress={handleUploadFile}>
+          <Text style={styles.Text}>Subir archivo</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.texto2}>
+          Tipos de archivos permitidos: PDF, DOC, DOCX
+        </Text>
+        <Text style={styles.texto2}>Tamaño máximo: 5MB</Text>
+
+        {fileUrl && (
+          <Text style={styles.fileInfo}>
+            Archivo subido:{" "}
+            <Text
+              style={{ color: "blue" }}
+              onPress={() => Linking.openURL(fileUrl)}
+            >
+              {fileUrl}
+            </Text>
+          </Text>
+        )}
+      </View>
     </ImageBackground>
   );
 }
@@ -53,11 +142,6 @@ const styles = StyleSheet.create({
     height: "100%",
     top: "17%",
   },
-  eyeButton: {
-    marginLeft: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   container: {
     marginTop: "10%",
     width: "90%",
@@ -65,6 +149,7 @@ const styles = StyleSheet.create({
     left: "5%",
     borderRadius: 30,
     backgroundColor: "#FFFFFF",
+    padding: 20,
   },
   logo: {
     height: 260,
@@ -74,23 +159,6 @@ const styles = StyleSheet.create({
     left: "20.5%",
     top: "-42%",
   },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 30,
-    paddingHorizontal: 15,
-    backgroundColor: "#FFFFFF",
-    width: "90%",
-    left: "4%",
-  },
-  passwordInput: {
-    flex: 1,
-    height: 40,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 30,
-    paddingHorizontal: 15,
-  },
   buton: {
     borderRadius: 30,
     backgroundColor: "#009245",
@@ -98,15 +166,10 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    left: "0%",
-    marginTop: "5%",
-    top: "-10%",
-    margin: "5%",
+    marginVertical: 10,
   },
   Text: {
-    marginTop: "3%",
     color: "#F8F8FF",
-    
   },
   title: {
     fontSize: 30,
@@ -115,30 +178,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: 5,
   },
-  inputtext: {
-    height: 40,
-    borderRadius: 30,
-    left: "5%",
-    borderWidth: 1,
-    backgroundColor: "#FFFFFF",
-    width: "90%",
-    paddingHorizontal: 15,
-  },
-  
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    margin: "10%",
-    left: "5%",
-    top: "-8%",
-    
+    textAlign: "center",
+    marginVertical: 10,
+    fontSize: 16,
   },
-    texto2: {
-    top: "-10%",
-    width:"49%",
-    height:"5%",
-    flexDirection: "row",
-    left: "8%",
-    fontSize: 7,
-    },
+  texto2: {
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  fileInfo: {
+    fontSize: 14,
+    marginVertical: 10,
+    textAlign: "center",
+  },
 });

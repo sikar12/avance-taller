@@ -24,7 +24,9 @@ export default function Loggin  () {
         />
       </View>
 
-      <TouchableOpacity style={styles.buton}>
+      <TouchableOpacity style={styles.buton}
+        onPress={() => navigation.navigate("Singin")} // Asegúrate de que el nombre de la ruta coincida
+      >
         <Text style={styles.Text}>Iniciar sesión</Text>
       </TouchableOpacity>
 

@@ -14,8 +14,13 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import { db } from "../../utils/firebase";
+import { db } from "../../utils/firebase"; // Firestore
 import { addDoc, collection } from "firebase/firestore";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth"; // Firebase Authentication
 
 export default function Form_np() {
   const [nombre, setNombre] = React.useState("");
@@ -28,25 +33,52 @@ export default function Form_np() {
 
   const navigation = useNavigation();
 
+  const validarCorreo = (correo) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(correo);
+  };
+
   const handleRegister = async () => {
+    const auth = getAuth();
+
     if (!nombre || !apellido || !rut || !correo || !telefono || !contraseña) {
       Alert.alert("Todos los campos son obligatorios");
       return;
     }
 
+    if (!validarCorreo(correo)) {
+      Alert.alert("Por favor, ingrese un correo electrónico válido.");
+      return;
+    }
+
     try {
+      // Registro en Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        correo,
+        contraseña
+      );
+      const user = userCredential.user;
+
+      // Enviar correo de verificación
+      await sendEmailVerification(user);
+      Alert.alert(
+        "Correo de verificación enviado. Revisa tu bandeja de entrada."
+      );
+
+      // Guardar datos adicionales en Firestore
       await addDoc(collection(db, "users"), {
         nombre,
         apellido,
         rut,
         correo,
         telefono,
-        contraseña,
+        uid: user.uid, // Vincula UID del usuario con Firestore
       });
-      Alert.alert("Registro exitoso");
-      navigation.navigate("Verification");
+
+      navigation.navigate("Loggin");
     } catch (error) {
-      console.error("Error al guardar los datos: ", error);
+      console.error("Error al registrar: ", error);
       Alert.alert("Error al registrar", error.message);
     }
   };
@@ -82,7 +114,7 @@ export default function Form_np() {
         </View>
 
         <ScrollView style={styles.container}>
-          <Text style={styles.title}>hola mundo</Text>
+          <Text style={styles.title}>Registro</Text>
 
           <Text style={styles.Text}>Nombre</Text>
           <TextInput
@@ -108,7 +140,7 @@ export default function Form_np() {
             onChangeText={handleRutChange}
           />
 
-          <Text style={styles.Text}>Correo electronico</Text>
+          <Text style={styles.Text}>Correo electrónico</Text>
           <TextInput
             style={styles.inputtext}
             placeholder="Ingrese su correo"
@@ -116,7 +148,7 @@ export default function Form_np() {
             onChangeText={setCorreo}
           />
 
-          <Text style={styles.Text}>Telefono</Text>
+          <Text style={styles.Text}>Teléfono</Text>
           <TextInput
             style={styles.inputtext}
             value={telefono}
