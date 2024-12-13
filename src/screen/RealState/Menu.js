@@ -63,6 +63,9 @@ const MenuButton = () => {
               />
               <BotonMenu text="Configuración" />
               <BotonMenu text="Perfil" />
+
+              <BotonMenu text="Cerrar sesión" 
+              onPress={()=> navigation.navigate ("Singin")}/>
             </View>
           </View>
         </View>

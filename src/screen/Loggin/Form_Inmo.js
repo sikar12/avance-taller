@@ -1,0 +1,282 @@
+import React from "react";
+import {
+  View,
+  Text,
+  ImageBackground,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
+import { db } from "../../utils/firebase"; // Firestore
+import { addDoc, collection } from "firebase/firestore";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth"; // Firebase Authentication
+
+export default function Form_inmo() {
+  const [nombre, setNombre] = React.useState("");
+  const [direccion, setDireccion] = React.useState("");
+  const [rut, setRut] = React.useState("");
+  const [correo, setCorreo] = React.useState("");
+  const [telefono, setTelefono] = React.useState("+56");
+  const [contraseña, setContraseña] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  const navigation = useNavigation();
+
+  const validarCorreo = (correo) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(correo);
+  };
+
+  const handleRegister = async () => {
+    const auth = getAuth();
+
+    if (!nombre || !rut || !correo || !telefono || !contraseña || !direccion) {
+      Alert.alert("Todos los campos son obligatorios");
+      return;
+    }
+
+    if (!validarCorreo(correo)) {
+      Alert.alert("Por favor, ingrese un correo electrónico válido.");
+      return;
+    }
+
+    try {
+      // Registro en Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        correo,
+        contraseña
+      );
+      const user = userCredential.user;
+
+      // Enviar correo de verificación
+      await sendEmailVerification(user);
+      Alert.alert(
+        "Correo de verificación enviado. Revise su bandeja de entrada."
+      );
+
+      // Guardar datos adicionales en Firestore
+      await addDoc(collection(db, "inmobiliaria"), {
+        nombre,
+        rut,
+        direccion,
+        correo,
+        telefono,
+        uid: user.uid, // Vincula UID del usuario con Firestore
+      });
+
+      navigation.navigate("Loggin");
+    } catch (error) {
+      console.error("Error al registrar: ", error);
+      Alert.alert("Error al registrar", error.message);
+    }
+  };
+
+  const handleRutChange = (text) => {
+    const validText = text.replace(/[^0-9kK]/g, ""); // Permitir solo números y la letra k
+    setRut(validText);
+  };
+
+  const handleTelefonoChange = (text) => {
+    if (!text.startsWith("+56")) {
+      text = "+56" + text.replace(/[^0-9]/g, "");
+    } else {
+      text = "+56" + text.slice(3).replace(/[^0-9]/g, "");
+    }
+    setTelefono(text);
+  };
+
+  return (
+    <ImageBackground
+      style={styles.background}
+      source={require("../../../assets/images/Group.png")}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View>
+          <Image
+            style={styles.logo}
+            source={require("../../../assets/images/INMOBINDER-03.png")}
+          />
+        </View>
+
+        <ScrollView style={styles.container}>
+          <Text style={styles.title}>Registro</Text>
+
+          <Text style={styles.Text}>Nombre de empresa</Text>
+          <TextInput
+            style={styles.inputtext}
+            placeholder="Ingrese el nombre de la empresa"
+            value={nombre}
+            onChangeText={setNombre}
+          />
+
+          <Text style={styles.Text}>Rut empresa</Text>
+          <TextInput
+            style={styles.inputtext}
+            placeholder="Ingrese el rut de la empresa"
+            value={rut}
+            onChangeText={handleRutChange}
+          />
+
+          <Text style={styles.Text}>Correo electrónico</Text>
+          <TextInput
+            style={styles.inputtext}
+            placeholder="Ingresar correo"
+            value={correo}
+            onChangeText={setCorreo}
+          />
+
+
+            <Text style={styles.Text}>Dirección</Text>
+            <TextInput
+                style={styles.inputtext}
+                placeholder="Ingrese la dirección de la empresa"
+                value={direccion}
+                onChangeText={setDireccion}
+            />
+
+          <Text style={styles.Text}>Teléfono</Text>
+          <TextInput
+            style={styles.inputtext}
+            value={telefono}
+            onChangeText={handleTelefonoChange}
+            keyboardType="numeric"
+          />
+
+          <Text style={styles.Text}>Contraseña</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Ingrese su contraseña"
+              value={contraseña}
+              onChangeText={setContraseña}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
+              <Icon
+                name={showPassword ? "eye" : "eye-off"}
+                size={24}
+                color="#000000"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.buton} onPress={handleRegister}>
+            <Text>Registrarse</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    top: "17%",
+  },
+  eyeButton: {
+    marginLeft: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    marginTop: "10%",
+    width: "90%",
+    top: "-18%",
+    left: "5%",
+    borderRadius: 30,
+    backgroundColor: "#FFFFFF",
+  },
+  logo: {
+    height: 260,
+    width: 260,
+    justifyContent: "center",
+    alignItems: "center",
+    left: "16.5%",
+    top: "-52%",
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 30,
+    paddingHorizontal: 15,
+    backgroundColor: "#FFFFFF",
+    width: "90%",
+    left: "5%",
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 30,
+    left: "1%",
+  },
+  buton: {
+    borderRadius: 30,
+    backgroundColor: "#009245",
+    width: 236,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    left: "19%",
+    marginTop: "5%",
+    top: "4%",
+  },
+  Text: {
+    marginTop: "3%",
+    left: "5%",
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#25272B",
+    textAlign: "center",
+    margin: 5,
+  },
+  inputtext: {
+    height: 40,
+    borderRadius: 30,
+    left: "5%",
+    borderWidth: 1,
+    backgroundColor: "#FFFFFF",
+    width: "90%",
+    paddingHorizontal: 15,
+  },
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+

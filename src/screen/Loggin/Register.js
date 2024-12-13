@@ -36,21 +36,21 @@ const Register = () => {
           <Text style={styles.Text}>Persona natural</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buton}>
+        <TouchableOpacity style={styles.buton} onPress ={()=>navigation.navigate("Inmo")}>
           <Text style={styles.Text}>Inmobilaria</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buton}>
+        <TouchableOpacity style={styles.buton} onPress={()=>navigation.navigate("Co")}>
           <Text style={styles.Text}>Corredor</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buton}>
+        <TouchableOpacity style={styles.buton}onPress={()=>navigation.navigate("Ac")}>
           <Text style={styles.Text}>Agencia de Corretaje</Text>
         </TouchableOpacity>
 
         <View style={styles.row}>
           <Text style={styles.transparentText}>¿Ya tienes cuena?</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress = {()=>navigation.navigate("Singin")}>
             <Text style ={styles.texto3}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>

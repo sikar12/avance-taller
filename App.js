@@ -20,6 +20,9 @@ import Register from "./src/screen/Loggin/Register";
 import Form_np from "./src/screen/Loggin/Form_np";
 import Verification from "./src/screen/Loggin/Verification";
 import Singin from "./src/screen/Loggin/Singin";
+import Form_inmo from "./src/screen/Loggin/Form_Inmo";
+import Form_co from "./src/screen/Loggin/Form_co";
+import Form_ac from "./src/screen/Loggin/Form_ac";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,8 +43,12 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Loggin" component={Loggin} />
-        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Register" component={Register}/>
         <Stack.Screen name="Form_np" component={Form_np} />
+        
+        <Stack.Screen name="Inmo" component={Form_inmo} />
+        <Stack.Screen name="Co" component={Form_co} />
+        <Stack.Screen name="Ac" component={Form_ac} />        
         <Stack.Screen name = "Singin"component = {Singin}/>
         <Stack.Screen name="Verification" component={Verification} />
         <Stack.Screen name="Home" component={Homemaps} />                                                     
