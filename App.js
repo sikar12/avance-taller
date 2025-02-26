@@ -23,7 +23,7 @@ import Singin from "./src/screen/Loggin/Singin";
 import Form_inmo from "./src/screen/Loggin/Form_Inmo";
 import Form_co from "./src/screen/Loggin/Form_co";
 import Form_ac from "./src/screen/Loggin/Form_ac";
-
+import Perfil from "./src/screen/RealState/Perfil";
 const Stack = createNativeStackNavigator();
 
 const { width, height } = Dimensions.get("window");
@@ -45,7 +45,7 @@ export default function App() {
         <Stack.Screen name="Loggin" component={Loggin} />
         <Stack.Screen name="Register" component={Register}/>
         <Stack.Screen name="Form_np" component={Form_np} />
-        
+        <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="Inmo" component={Form_inmo} />
         <Stack.Screen name="Co" component={Form_co} />
         <Stack.Screen name="Ac" component={Form_ac} />        

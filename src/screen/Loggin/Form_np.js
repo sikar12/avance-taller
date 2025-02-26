@@ -63,7 +63,14 @@ export default function Form_np() {
       // Enviar correo de verificación
       await sendEmailVerification(user);
       Alert.alert(
-        "Correo de verificación enviado. Revisa tu bandeja de entrada."
+        "Correo de verificación enviado", // Título del mensaje
+        "Revisa tu bandeja de entrada.", // Mensaje
+        [
+          {
+            text: "Reenviar enlace",
+            onPress: () => reenviarEnlaceVerificacion(user),
+          },
+        ]
       );
 
       // Guardar datos adicionales en Firestore
@@ -76,7 +83,6 @@ export default function Form_np() {
         uid: user.uid, // Vincula UID del usuario con Firestore
       });
 
-      navigation.navigate("Loggin");
     } catch (error) {
       console.error("Error al registrar: ", error);
       Alert.alert("Error al registrar", error.message);
@@ -97,6 +103,23 @@ export default function Form_np() {
     setTelefono(text);
   };
 
+  const reenviarEnlaceVerificacion = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser; // Asegurarse de obtener el usuario actualizado
+  
+      if (user) {
+        await sendEmailVerification(user);
+        Alert.alert("Enlace reenviado", "Se ha reenviado el enlace de verificación a tu correo.");
+      } else {
+        Alert.alert("Error", "No se encontró un usuario autenticado.");
+      }
+    } catch (error) {
+      console.error("Error al reenviar el enlace: ", error);
+      Alert.alert("Error", "No se pudo reenviar el enlace de verificación por favor espere de 2 a 5 minutos e intente de nuevo.");
+    }
+  };
+
   return (
     <ImageBackground
       style={styles.background}
@@ -112,8 +135,8 @@ export default function Form_np() {
             source={require("../../../assets/images/INMOBINDER-03.png")}
           />
         </View>
-
-        <ScrollView style={styles.container}>
+        
+        <View style={styles.container}>
           <Text style={styles.title}>Registro</Text>
 
           <Text style={styles.Text}>Nombre</Text>
@@ -180,7 +203,12 @@ export default function Form_np() {
           <TouchableOpacity style={styles.buton} onPress={handleRegister}>
             <Text>Registrarse</Text>
           </TouchableOpacity>
-        </ScrollView>
+
+          <TouchableOpacity style={styles.buton} onPress={reenviarEnlaceVerificacion}>
+            <Text>holsa mundo</Text>
+          </TouchableOpacity>
+          
+        </View>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -199,10 +227,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   container: {
-    marginTop: "10%",
-    width: "90%",
-    top: "-18%",
-    left: "5%",
+    marginLeft: 20,
+    marginRight: 20,
+    top: "-15%",
     borderRadius: 30,
     backgroundColor: "#FFFFFF",
   },
@@ -239,8 +266,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     left: "19%",
-    marginTop: "5%",
-    top: "4%",
+    marginTop: "4%",
+    top: "-1%",
   },
   Text: {
     marginTop: "3%",

@@ -51,7 +51,7 @@ const MenuButton = () => {
               <Ionicons name="close-outline" size={24} color="white" />
             </TouchableOpacity>
             <View style={styles.menuItem}>
-              <BotonMenu text="Mi perfil" />
+              <BotonMenu text="Mi perfil" onPress = {() => navigation.navigate("Perfil")} />
               <BotonMenu text="Mis publicaciones " />
               <BotonMenu
                 text="Añadir proyecto "
