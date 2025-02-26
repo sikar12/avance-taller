@@ -6,98 +6,90 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Platform
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { wp, hp } from "../../utils/ResponsiveUtils"; // Asumiendo esta ruta
 
-export default function Loggin  () {
+export default function Homelogg() {
   const navigation = useNavigation();
 
   return (
-    <ImageBackground
-      style={styles.background}
-      source={require("../../../assets/images/Group.png")}
-    >
-      <View>
-        <Image
-          style={styles.logo}
-          source={require("../../../assets/images/INMOBINDER-03.png")}
-        />
-      </View>
-
-      <TouchableOpacity style={styles.buton}
-        onPress={() => navigation.navigate("Singin")} // Asegúrate de que el nombre de la ruta coincida
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <ImageBackground
+        style={styles.background}
+        source={require("../../../assets/images/Group.png")}
+        resizeMode="cover"
       >
-        <Text style={styles.Text}>Iniciar sesión</Text>
-      </TouchableOpacity>
+        <View style={styles.logoContainer}>
+          <Image
+            style={styles.logo}
+            source={require("../../../assets/images/INMOBINDER-03.png")}
+            resizeMode="contain"
+          />
+        </View>
 
-      <TouchableOpacity
-        style={styles.buton}
-        onPress={() => navigation.navigate("Register")} // Asegúrate de que el nombre de la ruta coincida
-      >
-        <Text style={styles.Text}>Registrarse</Text>
-      </TouchableOpacity>
-    </ImageBackground>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => navigation.navigate("Singin")}
+          >
+            <Text style={styles.buttonText}>Iniciar sesión</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("Register")}
+          >
+            <Text style={styles.buttonText}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   background: {
     flex: 1,
     width: "100%",
     height: "100%",
-    marginTop: "50%",
-    resizeMode: "cover",
   },
-  container: {
-    justifyContent: "center",
+  logoContainer: {
     alignItems: "center",
-    padding: "10%",
-    margin: 20,
-    borderRadius: 30,
-    marginBottom: "20%",
-    height: "70%",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    justifyContent: "center",
+    marginTop: hp("10%"),
+    marginBottom: hp("5%"),
   },
   logo: {
-    height: 260,
-    width: 260,
+    width: wp("70%"),
+    height: hp("25%"),
+  },
+  buttonContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    left: "18%",
-    top: "-60%",
+    paddingBottom: hp("10%"),
   },
-  input: {
-    marginTop: "10%",
-    height: 40,
-    borderRadius: 30,
-    margin: 12,
-    borderWidth: 1,
-    backgroundColor: "#dcdcdc",
-    width: "90%",
-  },
-  tamlogo: {
-    justifyContent: "center",
-    alignItems: "center",
-    top: "-20%",
-    height: "20%",
-    width: 10, // Cambiado a número
-    marginLeft: "40%",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-  },
-  buton: {
-    borderRadius: 30,
+  button: {
+    borderRadius: wp("8%"),
     backgroundColor: "#FDFDFD",
-    width: 236,
-    height: 40,
+    width: wp("65%"),
+    height: hp("6%"),
     justifyContent: "center",
     alignItems: "center",
-    top: "-10%",
-    left: "20%",
-    marginTop: "10%",
+    marginVertical: hp("2%"),
   },
-
-  Text: {
+  buttonText: {
     color: "#014C24",
-    fontSize: 20,
+    fontSize: wp("5%"),
+    fontWeight: "500",
   },
 });

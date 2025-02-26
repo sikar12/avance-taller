@@ -6,151 +6,146 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Platform,
+  ScrollView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-
+import { wp, hp } from "../../utils/ResponsiveUtils"; // Asumiendo esta ruta
 
 const Register = () => {
-
-
-
   const navigation = useNavigation();
 
   return (
-    <ImageBackground
-      style={styles.background}
-      source={require("../../../assets/images/Group.png")}
-    >
-      <View>
-        <Image
-          style={styles.logo}
-          source={require("../../../assets/images/INMOBINDER-03.png")}
-        />
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <ImageBackground
+        style={styles.background}
+        source={require("../../../assets/images/Group.png")}
+        resizeMode="cover"
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.logoContainer}>
+            <Image
+              style={styles.logo}
+              source={require("../../../assets/images/INMOBINDER-03.png")}
+              resizeMode="contain"
+            />
+          </View>
 
-      <View style={styles.container}>
-        
-        <Text style = {styles.title}> Registrarse como </Text>
+          <View style={styles.container}>
+            <Text style={styles.title}>Registrarse como</Text>
 
-        <TouchableOpacity style={styles.buton}  onPress={()=>navigation.navigate("Form_np")} >
-          <Text style={styles.Text}>Persona natural</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.button}
+              onPress={() => navigation.navigate("Form_np")}
+            >
+              <Text style={styles.buttonText}>Persona natural</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buton} onPress ={()=>navigation.navigate("Inmo")}>
-          <Text style={styles.Text}>Inmobilaria</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={() => navigation.navigate("Inmo")}
+            >
+              <Text style={styles.buttonText}>Inmobiliaria</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buton} onPress={()=>navigation.navigate("Co")}>
-          <Text style={styles.Text}>Corredor</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={() => navigation.navigate("Co")}
+            >
+              <Text style={styles.buttonText}>Corredor</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buton}onPress={()=>navigation.navigate("Ac")}>
-          <Text style={styles.Text}>Agencia de Corretaje</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.button}
+              onPress={() => navigation.navigate("Ac")}
+            >
+              <Text style={styles.buttonText}>Agencia de Corretaje</Text>
+            </TouchableOpacity>
 
-        <View style={styles.row}>
-          <Text style={styles.transparentText}>¿Ya tienes cuena?</Text>
-          <TouchableOpacity onPress = {()=>navigation.navigate("Singin")}>
-            <Text style ={styles.texto3}>Inicia sesión</Text>
-          </TouchableOpacity>
-        </View>
-
-
-      </View>
-    </ImageBackground>
+            <View style={styles.row}>
+              <Text style={styles.transparentText}>¿Ya tienes cuenta?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Singin")}>
+                <Text style={styles.texto3}>Inicia sesión</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   background: {
     flex: 1,
     width: "100%",
     height: "100%",
-    marginTop: "50%",
-    resizeMode: "cover",
   },
-  container: {
-    height: "65%",
-    width: "80%",
-    top: "-20%",
-    left: "10%",
-    borderRadius: 30,
-    backgroundColor: "#FFFFFF",
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+  },
+  logoContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: hp("2%"),
+    marginBottom: hp("2%"),
   },
   logo: {
-    height: 260,
-    width: 260,
-    justifyContent: "center",
+    width: wp("70%"),
+    height: hp("25%"),
+  },
+  container: {
+    width: wp("85%"),
+    borderRadius: wp("8%"),
+    backgroundColor: "#FFFFFF",
+    padding: wp("5%"),
     alignItems: "center",
-    left: "16.5%",
-    top: "-60%",
+    marginBottom: hp("5%"),
   },
-  input: {
-    marginTop: "10%",
-    height: 40,
-    borderRadius: 30,
-    margin: 12,
-    borderWidth: 1,
-    backgroundColor: "#dcdcdc",
-    width: "90%",
-  },
-  tamlogo: {
-    justifyContent: "center",
-    alignItems: "center",
-    top: "-20%",
-    height: "20%",
-    width: "10",
-    marginLeft: "40%",
-
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-  },
-  buton: {
-    borderRadius: 30,
-    backgroundColor: "#009245",
-    width: 236,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    left: "15%",
-    marginTop: "5%",
-  },
-
-  Text: {
-    color: "#F8F8FF",
-    fontSize: 20,
-  },
-
   title: {
-    fontSize: 30, // Tamaño de la fuente
-    fontWeight: "bold", // Peso de la fuente
-    color: "#25272B", // Color del texto
-    textAlign: "center", // Alineación del texto
-    margin: 5 // Margen vertical
+    fontSize: wp("6%"),
+    fontWeight: "bold",
+    color: "#25272B",
+    textAlign: "center",
+    marginVertical: hp("2%"),
   },
-
-  texto2: {
-
-  top: "40%",
-  left: "30%",
+  button: {
+    borderRadius: wp("8%"),
+    backgroundColor: "#009245",
+    width: wp("65%"),
+    height: hp("6%"),
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: hp("1.5%"),
   },
-
-  texto3: {
-   
-    left: "65%",
+  buttonText: {
+    color: "#F8F8FF",
+    fontSize: wp("4.5%"),
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
-    margin: "10%",
-    left: "-5%",
-    top: "10%",
+    justifyContent: "center",
+    marginTop: hp("3%"),
+    width: "100%"
   },
-  
   transparentText: {
-    color: "rgba(0, 0, 0, 0.5)", // Texto transparente
-    fontSize: 16,
-    left: "18%",
+    color: "rgba(0, 0, 0, 0.5)",
+    fontSize: wp("4%"),
+    marginRight: wp("2%"),
+  },
+  texto3: {
+    color: "#009245",
+    fontSize: wp("4%"),
+    fontWeight: "bold",
   },
 });
 

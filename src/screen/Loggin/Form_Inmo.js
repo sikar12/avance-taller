@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  SafeAreaView,
+  StatusBar
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
@@ -21,6 +23,7 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth"; // Firebase Authentication
+import { wp, hp } from "../../utils/ResponsiveUtils"; // Asumiendo esta ruta
 
 export default function Form_inmo() {
   const [nombre, setNombre] = React.useState("");
@@ -76,7 +79,7 @@ export default function Form_inmo() {
         uid: user.uid, // Vincula UID del usuario con Firestore
       });
 
-      navigation.navigate("Loggin");
+      navigation.navigate("Singin");
     } catch (error) {
       console.error("Error al registrar: ", error);
       Alert.alert("Error al registrar", error.message);
@@ -98,170 +101,205 @@ export default function Form_inmo() {
   };
 
   return (
-    <ImageBackground
-      style={styles.background}
-      source={require("../../../assets/images/Group.png")}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <ImageBackground
+        style={styles.background}
+        source={require("../../../assets/images/Group.png")}
+        resizeMode="cover"
       >
-        <View>
-          <Image
-            style={styles.logo}
-            source={require("../../../assets/images/INMOBINDER-03.png")}
-          />
-        </View>
-
-        <ScrollView style={styles.container}>
-          <Text style={styles.title}>Registro</Text>
-
-          <Text style={styles.Text}>Nombre de empresa</Text>
-          <TextInput
-            style={styles.inputtext}
-            placeholder="Ingrese el nombre de la empresa"
-            value={nombre}
-            onChangeText={setNombre}
-          />
-
-          <Text style={styles.Text}>Rut empresa</Text>
-          <TextInput
-            style={styles.inputtext}
-            placeholder="Ingrese el rut de la empresa"
-            value={rut}
-            onChangeText={handleRutChange}
-          />
-
-          <Text style={styles.Text}>Correo electrónico</Text>
-          <TextInput
-            style={styles.inputtext}
-            placeholder="Ingresar correo"
-            value={correo}
-            onChangeText={setCorreo}
-          />
-
-
-            <Text style={styles.Text}>Dirección</Text>
-            <TextInput
-                style={styles.inputtext}
-                placeholder="Ingrese la dirección de la empresa"
-                value={direccion}
-                onChangeText={setDireccion}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : hp("5%")}
+        >
+           <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+          <View style={styles.logoContainer}>
+            <Image
+              style={styles.logo}
+              source={require("../../../assets/images/INMOBINDER-03.png")}
+              resizeMode="contain"
             />
-
-          <Text style={styles.Text}>Teléfono</Text>
-          <TextInput
-            style={styles.inputtext}
-            value={telefono}
-            onChangeText={handleTelefonoChange}
-            keyboardType="numeric"
-          />
-
-          <Text style={styles.Text}>Contraseña</Text>
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Ingrese su contraseña"
-              value={contraseña}
-              onChangeText={setContraseña}
-              secureTextEntry={!showPassword}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeButton}
-            >
-              <Icon
-                name={showPassword ? "eye" : "eye-off"}
-                size={24}
-                color="#000000"
-              />
-            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.buton} onPress={handleRegister}>
-            <Text>Registrarse</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ImageBackground>
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Registro</Text>
+
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Nombre de empresa</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingrese el nombre de la empresa"
+              value={nombre}
+              onChangeText={setNombre}
+            />
+            </View>
+
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Rut empresa</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingrese el rut de la empresa"
+              value={rut}
+              onChangeText={handleRutChange}
+            />
+            </View>
+
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Correo electrónico</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingresar correo"
+              value={correo}
+              onChangeText={setCorreo}
+            />
+            </View>
+
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Dirección</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingrese la dirección de la empresa"
+              value={direccion}
+              onChangeText={setDireccion}
+            />
+            </View>
+
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Teléfono</Text>
+            <TextInput
+              style={styles.input}
+              value={telefono}
+              onChangeText={handleTelefonoChange}
+              keyboardType="numeric"
+            />
+              </View>
+
+            <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Contraseña</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Ingrese su contraseña"
+                value={contraseña}
+                onChangeText={setContraseña}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+        
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
+              >
+                <Icon
+                  name={showPassword ? "eye" : "eye-off"}
+                  size={24}
+                  color="#000000"
+                />
+              </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.button} onPress={handleRegister}>
+              <Text style={styles.buttonText}>Registrarse</Text>
+            </TouchableOpacity>
+          </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   background: {
     flex: 1,
     width: "100%",
     height: "100%",
-    top: "17%",
   },
-  eyeButton: {
-    marginLeft: 10,
-    justifyContent: "center",
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: "center",
+    paddingVertical: hp("2%"),
   },
-  container: {
-    marginTop: "10%",
-    width: "90%",
-    top: "-18%",
-    left: "5%",
-    borderRadius: 30,
-    backgroundColor: "#FFFFFF",
+  logoContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: hp("2%"),
   },
   logo: {
-    height: 260,
-    width: 260,
-    justifyContent: "center",
-    alignItems: "center",
-    left: "16.5%",
-    top: "-52%",
+    width: wp("70%"),
+    height: hp("20%"),
+  },
+  formContainer: {
+    width: wp("85%"),
+    backgroundColor: "#FFFFFF",
+    borderRadius: wp("8%"),
+    padding: wp("5%"),
+    marginBottom: hp("4%"),
+  },
+  title: {
+    fontSize: wp("7%"),
+    fontWeight: "bold",
+    color: "#25272B",
+    textAlign: "center",
+    marginBottom: hp("2%"),
+  },
+  inputGroup: {
+    marginBottom: hp("2%"),
+    width: "100%",
+  },
+  inputLabel: {
+    fontSize: wp("4%"),
+    marginBottom: hp("0.5%"),
+  },
+  input: {
+    height: hp("6%"),
+    borderRadius: wp("8%"),
+    borderWidth: 1,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: wp("4%"),
+    width: "100%",
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
+    borderRadius: wp("8%"),
     borderWidth: 1,
-    borderRadius: 30,
-    paddingHorizontal: 15,
-    backgroundColor: "#FFFFFF",
-    width: "90%",
-    left: "5%",
+    paddingHorizontal: wp("4%"),
+    height: hp("6%"),
   },
   passwordInput: {
     flex: 1,
-    height: 40,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 30,
-    left: "1%",
+    height: hp("6%"),
   },
-  buton: {
-    borderRadius: 30,
+  eyeButton: {
+    padding: wp("2%"),
+  },
+  button: {
+    borderRadius: wp("8%"),
     backgroundColor: "#009245",
-    width: 236,
-    height: 40,
+    width: "65%",
+    height: hp("6%"),
     justifyContent: "center",
     alignItems: "center",
-    left: "19%",
-    marginTop: "5%",
-    top: "4%",
+    alignSelf: "center",
+    marginTop: hp("2%"),
   },
-  Text: {
-    marginTop: "3%",
-    left: "5%",
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#25272B",
-    textAlign: "center",
-    margin: 5,
-  },
-  inputtext: {
-    height: 40,
-    borderRadius: 30,
-    left: "5%",
-    borderWidth: 1,
-    backgroundColor: "#FFFFFF",
-    width: "90%",
-    paddingHorizontal: 15,
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: wp("4.5%"),
+    fontWeight: "500",
   },
 });
 
