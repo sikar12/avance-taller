@@ -24,6 +24,8 @@ import Form_inmo from "./src/screen/Loggin/Form_Inmo";
 import Form_co from "./src/screen/Loggin/Form_co";
 import Form_ac from "./src/screen/Loggin/Form_ac";
 import Perfil from "./src/screen/RealState/Perfil";
+import Mapa from "./src/screen/PropertyBrokerage/maps";
+import Agencymapa from "./src/screen/Agencybrokage/Agencymapa";
 const Stack = createNativeStackNavigator();
 
 const { width, height } = Dimensions.get("window");
@@ -51,7 +53,7 @@ export default function App() {
         <Stack.Screen name="Ac" component={Form_ac} />        
         <Stack.Screen name = "Singin"component = {Singin}/>
         <Stack.Screen name="Verification" component={Verification} />
-        <Stack.Screen name="Home" component={Homemaps} />                                                     
+        <Stack.Screen name="Home" component={Agencymapa} />                                                     
         <Stack.Screen name="Add" component={Addproject} />
         <Stack.Screen name="CRUD" component={CRUD} />
         <Stack.Screen name="Pllist" component={ListProjet} />

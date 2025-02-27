@@ -9,7 +9,7 @@ import {
   Text,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import BotonMenu from "../../components/RealState/Botonmenu";
+import BotonMenu from "../../components/BrokerageAgency/Botonmenu";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { useNavigation } from "@react-navigation/native";
 const MenuButton = () => {

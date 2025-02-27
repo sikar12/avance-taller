@@ -14,7 +14,8 @@ import {
   Platform,
   Alert,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  ActivityIndicator
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
@@ -23,25 +24,64 @@ import {
   collection,
   query,
   where,
-  getDocs,
+  getDocs
 } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
-import { wp, hp } from "../../utils/ResponsiveUtils"; // Asumiendo esta ruta
+import { wp, hp } from "../../utils/ResponsiveUtils";
 
-export default function Singin() {
+export default function Signin() {
   const [correo, setCorreo] = useState("");
   const [contraseña, setContraseña] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  
   const navigation = useNavigation();
   const db = getFirestore();
 
-  const handleLogin = async () => {
-    if (!correo || !contraseña) {
-      Alert.alert("Error", "Por favor, complete todos los campos.");
-      return;
-    }
+  // Validar el formato del correo electrónico
+  const validarCorreo = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
+  // Resetear errores al cambiar los campos
+  const handleCorreoChange = (text) => {
+    setCorreo(text);
+    setEmailError("");
+  };
+
+  const handleContraseñaChange = (text) => {
+    setContraseña(text);
+    setPasswordError("");
+  };
+
+  const handleLogin = async () => {
+    // Validaciones
+    let isValid = true;
+    
+    if (!correo) {
+      setEmailError("Por favor, ingrese su correo electrónico");
+      isValid = false;
+    } else if (!validarCorreo(correo)) {
+      setEmailError("Formato de correo electrónico inválido");
+      isValid = false;
+    }
+    
+    if (!contraseña) {
+      setPasswordError("Por favor, ingrese su contraseña");
+      isValid = false;
+    } else if (contraseña.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+      isValid = false;
+    }
+    
+    if (!isValid) return;
+
+    setLoading(true);
     const auth = getAuth();
+    
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -51,9 +91,24 @@ export default function Singin() {
       const user = userCredential.user;
 
       if (!user.emailVerified) {
+        setLoading(false);
         Alert.alert(
           "Correo no verificado",
-          "Por favor, verifica tu correo antes de iniciar sesión."
+          "Por favor, verifica tu correo antes de iniciar sesión.",
+          [
+            { 
+              text: "Reenviar verificación", 
+              onPress: async () => {
+                try {
+                  await user.sendEmailVerification();
+                  Alert.alert("Correo enviado", "Se ha enviado un nuevo correo de verificación");
+                } catch (error) {
+                  Alert.alert("Error", "No se pudo enviar el correo de verificación");
+                }
+              } 
+            },
+            { text: "Aceptar" }
+          ]
         );
         return;
       }
@@ -61,73 +116,86 @@ export default function Singin() {
       const uid = user.uid;
 
       // Consultar Firestore para determinar el tipo de usuario
-      const usersQuery = query(
-        collection(db, "users"),
-        where("uid", "==", uid)
-      );
-      const inmobiliariaQuery = query(
-        collection(db, "inmobiliaria"),
-        where("uid", "==", uid)
-      );
-      const corredorQuery = query(
-        collection(db, "corredor"),
-        where("uid", "==", uid)
-      );
-      const agenciacorretajeQuery = query(
-        collection(db, "agenciacorretaje"),
-        where("uid", "==", uid)
-      );
+      try {
+        const usersQuery = query(
+          collection(db, "users"),
+          where("uid", "==", uid)
+        );
+        const inmobiliariaQuery = query(
+          collection(db, "inmobiliaria"),
+          where("uid", "==", uid)
+        );
+        const corredorQuery = query(
+          collection(db, "corredor"),
+          where("uid", "==", uid)
+        );
+        const agenciacorretajeQuery = query(
+          collection(db, "agenciacorretaje"),
+          where("uid", "==", uid)
+        );
 
-      const [
-        usersSnapshot,
-        inmobiliariaSnapshot,
-        corredorSnapshot,
-        agenciacorretajeSnapshot,
-      ] = await Promise.all([
-        getDocs(usersQuery),
-        getDocs(inmobiliariaQuery),
-        getDocs(corredorQuery),
-        getDocs(agenciacorretajeQuery),
-      ]);
+        const [
+          usersSnapshot,
+          inmobiliariaSnapshot,
+          corredorSnapshot,
+          agenciacorretajeSnapshot,
+        ] = await Promise.all([
+          getDocs(usersQuery),
+          getDocs(inmobiliariaQuery),
+          getDocs(corredorQuery),
+          getDocs(agenciacorretajeQuery),
+        ]);
 
-      if (!usersSnapshot.empty) {
-        console.log(
-          "Documento encontrado en 'users':",
-          usersSnapshot.docs[0].data()
-        );
-        Alert.alert("Éxito", "Bienvenido persona natural.");
-        navigation.navigate("Home");
-      } else if (!inmobiliariaSnapshot.empty) {
-        console.log(
-          "Documento encontrado en 'inmobiliaria':",
-          inmobiliariaSnapshot.docs[0].data()
-        );
-        Alert.alert("Éxito", "Bienvenido inmobiliaria.");
-        navigation.navigate("Home");
-      } else if (!corredorSnapshot.empty) {
-        console.log(
-          "Documento encontrado en 'corredor':",
-          corredorSnapshot.docs[0].data()
-        );
-        Alert.alert("Éxito", "Bienvenido corredor.");
-        navigation.navigate("Home");
-      } else if (!agenciacorretajeSnapshot.empty) {
-        console.log(
-          "Documento encontrado en 'agenciacorretaje':",
-          agenciacorretajeSnapshot.docs[0].data()
-        );
-        Alert.alert("Éxito", "Bienvenido agencia de corretaje.");
-        navigation.navigate("Home");
-      } else {
-        Alert.alert("Error", "No se encontró información del usuario.");
+        setLoading(false);
+
+        if (!usersSnapshot.empty) {
+          console.log("Documento encontrado en 'users':", usersSnapshot.docs[0].data());
+          Alert.alert("Éxito", "Bienvenido persona natural.");
+          navigation.navigate("Home");
+        } else if (!inmobiliariaSnapshot.empty) {
+          console.log("Documento encontrado en 'inmobiliaria':", inmobiliariaSnapshot.docs[0].data());
+          Alert.alert("Éxito", "Bienvenido inmobiliaria.");
+          navigation.navigate("Home");
+        } else if (!corredorSnapshot.empty) {
+          console.log("Documento encontrado en 'corredor':", corredorSnapshot.docs[0].data());
+          Alert.alert("Éxito", "Bienvenido corredor.");
+          navigation.navigate("Home");
+        } else if (!agenciacorretajeSnapshot.empty) {
+          console.log("Documento encontrado en 'agenciacorretaje':", agenciacorretajeSnapshot.docs[0].data());
+          Alert.alert("Éxito", "Bienvenido agencia de corretaje.");
+          navigation.navigate("Home");
+        } else {
+          Alert.alert("Error", "No se encontró información del usuario.");
+        }
+      } catch (error) {
+        setLoading(false);
+        console.error("Error al consultar colecciones:", error);
+        Alert.alert("Error", "Error al buscar información del usuario. Por favor, intente nuevamente.");
       }
     } catch (error) {
-      const errorMessage =
-        error.code === "auth/wrong-password"
-          ? "Contraseña incorrecta. Intente nuevamente."
-          : error.code === "auth/user-not-found"
-          ? "No existe una cuenta con este correo."
-          : "Error al iniciar sesión. Intente nuevamente.";
+      setLoading(false);
+      console.error("Error de inicio de sesión:", error);
+      
+      let errorMessage;
+      switch(error.code) {
+        case "auth/wrong-password":
+          setPasswordError("Contraseña incorrecta");
+          errorMessage = "Contraseña incorrecta. Intente nuevamente.";
+          break;
+        case "auth/user-not-found":
+          setEmailError("No existe cuenta con este correo");
+          errorMessage = "No existe una cuenta con este correo.";
+          break;
+        case "auth/too-many-requests":
+          errorMessage = "Demasiados intentos incorrectos. Intente más tarde.";
+          break;
+        case "auth/network-request-failed":
+          errorMessage = "Error de conexión. Verifique su internet.";
+          break;
+        default:
+          errorMessage = "Error al iniciar sesión. Intente nuevamente.";
+      }
+      
       Alert.alert("Error", errorMessage);
     }
   };
@@ -161,39 +229,55 @@ export default function Singin() {
               <View style={styles.formContainer}>
                 <Text style={styles.title}>Iniciar sesión</Text>
 
-                <TextInput
-                  style={styles.inputText}
-                  placeholder="Ingrese su correo"
-                  value={correo}
-                  onChangeText={setCorreo}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-
-                <View style={styles.passwordContainer}>
+                <View style={styles.inputContainer}>
                   <TextInput
-                    style={styles.passwordInput}
-                    placeholder="Ingrese su contraseña"
-                    secureTextEntry={!showPassword}
-                    value={contraseña}
-                    onChangeText={setContraseña}
+                    style={[styles.inputText, emailError ? styles.inputError : null]}
+                    placeholder="Ingrese su correo"
+                    value={correo}
+                    onChangeText={handleCorreoChange}
+                    keyboardType="email-address"
                     autoCapitalize="none"
+                    autoCorrect={false}
                   />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeButton}
-                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                  >
-                    <Icon
-                      name={showPassword ? "eye" : "eye-off"}
-                      size={wp("6%")}
-                      color="#000000"
-                    />
-                  </TouchableOpacity>
+                  {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
                 </View>
 
-                <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                  <Text style={styles.buttonText}>Ingresar</Text>
+                <View style={styles.inputContainer}>
+                  <View style={[styles.passwordContainer, passwordError ? styles.inputError : null]}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="Ingrese su contraseña"
+                      secureTextEntry={!showPassword}
+                      value={contraseña}
+                      onChangeText={handleContraseñaChange}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeButton}
+                      hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                    >
+                      <Icon
+                        name={showPassword ? "eye" : "eye-off"}
+                        size={wp("6%")}
+                        color="#000000"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.button} 
+                  onPress={handleLogin}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.buttonText}>Ingresar</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -238,6 +322,11 @@ const styles = StyleSheet.create({
     borderRadius: wp("8%"),
     backgroundColor: "#FFFFFF",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   title: {
     fontSize: wp("7%"),
@@ -245,31 +334,44 @@ const styles = StyleSheet.create({
     color: "#25272B",
     marginBottom: hp("3%"),
   },
+  inputContainer: {
+    width: "100%",
+    marginBottom: hp("1.5%"),
+  },
   inputText: {
     height: hp("6%"),
-    width: "90%",
+    width: "100%",
     borderRadius: wp("8%"),
     borderWidth: 1,
+    borderColor: "#CCCCCC",
     backgroundColor: "#FFFFFF",
     paddingHorizontal: wp("4%"),
-    marginBottom: hp("2%"),
+  },
+  inputError: {
+    borderColor: "red",
+  },
+  errorText: {
+    color: "red",
+    fontSize: wp("3%"),
+    marginTop: 5,
+    marginLeft: 10,
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: "90%",
+    width: "100%",
     height: hp("6%"),
     borderRadius: wp("8%"),
     borderWidth: 1,
+    borderColor: "#CCCCCC",
     paddingHorizontal: wp("4%"),
     backgroundColor: "#FFFFFF",
-    marginBottom: hp("4%"),
   },
   passwordInput: {
     flex: 1,
-    height: hp("5%"),  // Reducido para que no desborde el contenedor
+    height: hp("5%"),
     backgroundColor: "#FFFFFF",
-    padding: 0,  // Eliminar cualquier padding interno
+    padding: 0,
   },
   eyeButton: {
     padding: wp("2%"),
