@@ -12,502 +12,642 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import {
   getAuth,
   updateEmail,
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
-  signOut
+  signOut,
 } from "firebase/auth";
 import {
   getFirestore,
   doc,
   updateDoc,
+  getDoc,
   collection,
   query,
   where,
-  getDocs
+  getDocs,
 } from "firebase/firestore";
-import * as ImagePicker from "expo-image-picker";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { wp, hp } from "../../utils/ResponsiveUtils";
 
 export default function ProfileSetting() {
   const navigation = useNavigation();
-  const route = useRoute();
-  const { userData = {}, userType = "" } = route.params || {};
-  
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [userType, setUserType] = useState("");
+
+  // Campos de perfil
+  const [nombres, setNombres] = useState("");
+  const [apellidos, setApellidos] = useState("");
+  const [rut, setRut] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [contrasena, setContrasena] = useState("••••••••"); // Contraseña oculta por defecto
+  const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [profileImage, setProfileImage] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  
-  // Campos de usuario
-  const [formData, setFormData] = useState({
-    // Campos generales
-    email: userData.email || "",
-    telefono: userData.telefono || "",
-    
-    // Campos específicos por tipo de usuario
-    nombre: userData.nombre || "",
-    rut: userData.rut || "",
-    nombreEmpresa: userData.nombreEmpresa || "",
-    rutEmpresa: userData.rutEmpresa || "",
-    razonSocial: userData.razonSocial || "",
-    direccion: userData.direccion || "",
-    region: userData.region || "",
-    comuna: userData.comuna || "",
-    sitioWeb: userData.sitioWeb || "",
-    descripcion: userData.descripcion || ""
-  });
-  
-  const [errors, setErrors] = useState({});
-  
+  const [camposEditados, setCamposEditados] = useState({});
+
+  // Variable para almacenar la referencia del documento
+  const [userDocRef, setUserDocRef] = useState(null);
+  const [userDocData, setUserDocData] = useState(null);
+
   useEffect(() => {
-    if (userData) {
-      setFormData({
-        ...formData,
-        ...userData
-      });
-      
-      if (userData.profileImageUrl) {
-        setProfileImage(userData.profileImageUrl);
-      }
+    cargarDatosPerfil();
+    
+    // Debug: Mostrar el estado de autenticación
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      console.log("Usuario autenticado:", user.email);
+      console.log("UID:", user.uid);
+    } else {
+      console.log("No hay usuario autenticado");
     }
-  }, [userData]);
-  
-  // Función para cargar una imagen de perfil
-  const pickImage = async () => {
+  }, []);
+
+  const cargarDatosPerfil = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permiso denegado", "Se necesita permiso para acceder a la galería");
+      setLoading(true);
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        Alert.alert("Error", "No hay usuario autenticado");
+        navigation.navigate("Signin");
         return;
       }
+
+      // Guardar el correo del usuario autenticado
+      setCorreo(user.email || "");
       
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
-      });
+      const db = getFirestore();
+      const uid = user.uid;
       
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setUploadingImage(true);
-        const imageUri = result.assets[0].uri;
-        const uploadUrl = await uploadImageAsync(imageUri);
-        setProfileImage(uploadUrl);
-        setUploadingImage(false);
+      // Verificar en qué colección está el usuario
+      const collections = ["users", "inmobiliaria", "corredor", "agenciacorretaje"];
+      
+      let userData = null;
+      let userCollection = "";
+      let docRef = null;
+
+      // Buscar en todas las colecciones posibles
+      for (const collectionName of collections) {
+        const userQuery = query(
+          collection(db, collectionName),
+          where("uid", "==", uid)
+        );
         
-        // Actualizar la URL de la imagen en Firestore
-        const auth = getAuth();
-        const user = auth.currentUser;
-        if (user && userType) {
-          const db = getFirestore();
-          const userDocRef = await getUserDocRef(user.uid, userType);
+        const snapshot = await getDocs(userQuery);
+        
+        if (!snapshot.empty) {
+          userData = snapshot.docs[0].data();
+          docRef = doc(db, collectionName, snapshot.docs[0].id);
+          userCollection = collectionName;
           
-          if (userDocRef) {
-            await updateDoc(userDocRef, {
-              profileImageUrl: uploadUrl
-            });
-            Alert.alert("Éxito", "Imagen de perfil actualizada");
+          console.log(`Usuario encontrado en colección: ${collectionName}`);
+          console.log("Datos del usuario:", JSON.stringify(userData, null, 2));
+          break;
+        }
+      }
+
+      if (!userData) {
+        Alert.alert("Error", "No se encontraron datos del usuario");
+        return;
+      }
+
+      // Guardar referencias para actualización posterior
+      setUserDocRef(docRef);
+      setUserDocData(userData);
+      setUserType(userCollection);
+
+      // Extraer y mostrar datos según el tipo de usuario
+      if (userCollection === "users") {
+        // Personas naturales
+        setNombres(userData.nombre || "");
+        setApellidos(userData.apellidos || "");
+        setRut(userData.rut || "");
+        setTelefono(userData.telefono || "");
+      } else if (userCollection === "inmobiliaria") {
+        // Inmobiliarias
+        setNombres(userData.nombreEmpresa || userData.nombre || "");
+        setApellidos(userData.representanteLegal || "");
+        setRut(userData.rutEmpresa || userData.rut || "");
+        setTelefono(userData.telefono || userData.telefonoContacto || "");
+      } else if (userCollection === "corredor") {
+        // Corredores
+        setNombres(userData.nombre || "");
+        setApellidos(userData.apellidos || "");
+        setRut(userData.rut || "");
+        setTelefono(userData.telefono || userData.telefonoContacto || "");
+      } else if (userCollection === "agenciacorretaje") {
+        // Agencias de corretaje
+        setNombres(userData.razonSocial || userData.nombre || "");
+        setApellidos(userData.direccion || ""); // Usar dirección en lugar de apellidos/representante legal
+        setRut(userData.rut || "");
+        setTelefono(userData.telefono || userData.telefonoContacto || "");
+      }
+
+      // Si los campos siguen vacíos, buscar en propiedades alternativas
+      if (!nombres) {
+        const nombreCampos = ["nombre", "nombreEmpresa", "razonSocial", "name"];
+        for (const campo of nombreCampos) {
+          if (userData[campo] && typeof userData[campo] === 'string') {
+            setNombres(userData[campo]);
+            break;
           }
         }
       }
+
+      if (!apellidos) {
+        const apellidosCampos = ["apellidos", "representanteLegal", "apellido", "lastName"];
+        for (const campo of apellidosCampos) {
+          if (userData[campo] && typeof userData[campo] === 'string') {
+            setApellidos(userData[campo]);
+            break;
+          }
+        }
+      }
+
+      if (!rut) {
+        const rutCampos = ["rut", "rutEmpresa", "documento", "identificacion"];
+        for (const campo of rutCampos) {
+          if (userData[campo] && typeof userData[campo] === 'string') {
+            setRut(userData[campo]);
+            break;
+          }
+        }
+      }
+
+      if (!telefono) {
+        const telefonoCampos = ["telefono", "telefonoContacto", "phone", "celular", "movil"];
+        for (const campo of telefonoCampos) {
+          if (userData[campo] && typeof userData[campo] === 'string') {
+            setTelefono(userData[campo]);
+            break;
+          }
+        }
+      }
+
+      // Información de diagnóstico que se muestra al usuario si faltan datos
+      if (!nombres || !apellidos || !rut) {
+        console.warn("Algunos campos están vacíos después de intentar cargarlos");
+        console.warn(`Nombres: ${nombres}, Apellidos: ${apellidos}, RUT: ${rut}, Teléfono: ${telefono}`);
+      }
     } catch (error) {
-      console.error("Error al seleccionar imagen:", error);
-      setUploadingImage(false);
-      Alert.alert("Error", "No se pudo cargar la imagen");
+      console.error("Error al cargar datos del perfil:", error);
+      Alert.alert("Error", "No se pudieron cargar los datos del perfil: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Función para subir la imagen a Firebase Storage
-  const uploadImageAsync = async (uri) => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    
-    if (!user) {
-      throw new Error("Usuario no autenticado");
-    }
-    
-    const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.onload = function() {
-        resolve(xhr.response);
-      };
-      xhr.onerror = function(e) {
-        console.error(e);
-        reject(new TypeError("Error en la red"));
-      };
-      xhr.responseType = "blob";
-      xhr.open("GET", uri, true);
-      xhr.send(null);
-    });
-    
-    const storage = getStorage();
-    const fileRef = ref(storage, `profileImages/${user.uid}_${new Date().getTime()}`);
-    
-    await uploadBytes(fileRef, blob);
-    blob.close();
-    
-    return await getDownloadURL(fileRef);
-  };
-  
-  // Función para obtener la referencia del documento del usuario
-  const getUserDocRef = async (uid, userType) => {
-    const db = getFirestore();
-    
-    try {
-      const userQuery = query(
-        collection(db, userType),
-        where("uid", "==", uid)
-      );
-      
-      const snapshot = await getDocs(userQuery);
-      
-      if (!snapshot.empty) {
-        return doc(db, userType, snapshot.docs[0].id);
-      }
-      
-      return null;
-    } catch (error) {
-      console.error("Error al obtener referencia del documento:", error);
-      return null;
-    }
-  };
-  
-  // Función para validar el formulario
-  const validateForm = () => {
-    let valid = true;
-    let newErrors = {};
-    
-    // Validar email
-    if (!formData.email.trim()) {
-      newErrors.email = "El correo electrónico es obligatorio";
-      valid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      newErrors.email = "Formato de correo electrónico inválido";
-      valid = false;
-    }
-    
-    // Validar teléfono
-    if (!formData.telefono.trim()) {
-      newErrors.telefono = "El teléfono es obligatorio";
-      valid = false;
-    }
-    
-    // Validaciones específicas por tipo de usuario
-    if (userType === "users") {
-      if (!formData.nombre.trim()) {
-        newErrors.nombre = "El nombre es obligatorio";
-        valid = false;
-      }
-      if (!formData.rut.trim()) {
-        newErrors.rut = "El RUT es obligatorio";
-        valid = false;
-      }
-    } else if (userType === "inmobiliaria") {
-      if (!formData.nombreEmpresa.trim()) {
-        newErrors.nombreEmpresa = "El nombre de la empresa es obligatorio";
-        valid = false;
-      }
-      if (!formData.rutEmpresa.trim()) {
-        newErrors.rutEmpresa = "El RUT de la empresa es obligatorio";
-        valid = false;
-      }
-    } else if (userType === "corredor") {
-      if (!formData.nombre.trim()) {
-        newErrors.nombre = "El nombre es obligatorio";
-        valid = false;
-      }
-      if (!formData.rut.trim()) {
-        newErrors.rut = "El RUT es obligatorio";
-        valid = false;
-      }
-    } else if (userType === "agenciacorretaje") {
-      if (!formData.razonSocial.trim()) {
-        newErrors.razonSocial = "La razón social es obligatoria";
-        valid = false;
-      }
-      if (!formData.rut.trim()) {
-        newErrors.rut = "El RUT es obligatorio";
-        valid = false;
-      }
-    }
-    
-    setErrors(newErrors);
-    return valid;
-  };
-  
-  // Función para validar cambio de contraseña
-  const validatePasswordChange = () => {
-    let valid = true;
-    let newErrors = {};
-    
-    if (!currentPassword.trim()) {
-      newErrors.currentPassword = "La contraseña actual es obligatoria";
-      valid = false;
-    }
-    
-    if (!newPassword.trim()) {
-      newErrors.newPassword = "La nueva contraseña es obligatoria";
-      valid = false;
-    } else if (newPassword.length < 6) {
-      newErrors.newPassword = "La contraseña debe tener al menos 6 caracteres";
-      valid = false;
-    }
-    
-    if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden";
-      valid = false;
-    }
-    
-    setErrors(newErrors);
-    return valid;
-  };
-  
-  // Función para guardar los cambios en el perfil
-  const handleSaveChanges = async () => {
-    if (!validateForm()) {
+
+  const actualizarPerfil = async () => {
+    if (!userDocRef) {
+      Alert.alert("Error", "No se encontró referencia al documento del usuario");
       return;
     }
-    
-    setLoading(true);
-    
+
     try {
+      setSaving(true);
       const auth = getAuth();
       const user = auth.currentUser;
       
       if (!user) {
-        Alert.alert("Error", "Usuario no autenticado");
-        setLoading(false);
+        Alert.alert("Error", "No hay usuario autenticado");
         return;
       }
+
+      // Si el correo ha cambiado, reautenticar y actualizar
+      if (correo !== user.email) {
+        // Se requiere contraseña actual para actualizar correo
+        if (!currentPassword) {
+          Alert.alert(
+            "Se requiere contraseña", 
+            "Por favor, ingrese su contraseña actual para cambiar el correo electrónico",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  // Aquí podrías mostrar un modal para ingresar la contraseña
+                  Alert.prompt(
+                    "Contraseña actual",
+                    "Ingrese su contraseña actual",
+                    [
+                      {
+                        text: "Cancelar",
+                        style: "cancel"
+                      },
+                      {
+                        text: "Confirmar",
+                        onPress: (password) => {
+                          setCurrentPassword(password);
+                          // Reintenta la actualización
+                          actualizarPerfil();
+                        }
+                      }
+                    ],
+                    "secure-text"
+                  );
+                }
+              }
+            ]
+          );
+          setSaving(false);
+          return;
+        }
+
+        // Reautenticar antes de cambiar correo
+        try {
+          const credential = EmailAuthProvider.credential(
+            user.email,
+            currentPassword
+          );
+          await reauthenticateWithCredential(user, credential);
+          await updateEmail(user, correo);
+        } catch (error) {
+          console.error("Error al actualizar correo:", error);
+          Alert.alert("Error", "No se pudo actualizar el correo electrónico. Verifique su contraseña.");
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Actualizar datos en Firestore según el tipo de usuario
+      const dataToUpdate = {};
       
-      // Si el email cambió, actualizarlo en Firebase Auth
-      if (user.email !== formData.email) {
-        await updateEmail(user, formData.email);
+      if (userType === "users") {
+        dataToUpdate.nombre = nombres;
+        dataToUpdate.apellidos = apellidos;
+        dataToUpdate.rut = rut;
+        dataToUpdate.telefono = telefono;
+      } else if (userType === "inmobiliaria") {
+        dataToUpdate.nombreEmpresa = nombres;
+        dataToUpdate.representanteLegal = apellidos;
+        dataToUpdate.rutEmpresa = rut;
+        dataToUpdate.telefono = telefono;
+      } else if (userType === "corredor") {
+        dataToUpdate.nombre = nombres;
+        dataToUpdate.apellidos = apellidos;
+        dataToUpdate.rut = rut;
+        dataToUpdate.telefono = telefono;
+      } else if (userType === "agenciacorretaje") {
+        dataToUpdate.razonSocial = nombres;
+        dataToUpdate.direccion = apellidos; // Guardar como dirección en lugar de representanteLegal
+        dataToUpdate.rut = rut;
+        dataToUpdate.telefono = telefono;
       }
       
-      // Actualizar datos en Firestore
-      const db = getFirestore();
-      const userDocRef = await getUserDocRef(user.uid, userType);
+      await updateDoc(userDocRef, dataToUpdate);
+      Alert.alert("Éxito", "Perfil actualizado correctamente");
       
-      if (userDocRef) {
-        // Filtrar los campos según el tipo de usuario
-        let dataToUpdate = {};
-        
-        // Campos comunes para todos
-        dataToUpdate.telefono = formData.telefono;
-        
-        if (userType === "users") {
-          dataToUpdate = {
-            ...dataToUpdate,
-            nombre: formData.nombre,
-            rut: formData.rut,
-            direccion: formData.direccion,
-            region: formData.region,
-            comuna: formData.comuna
-          };
-        } else if (userType === "inmobiliaria") {
-          dataToUpdate = {
-            ...dataToUpdate,
-            nombreEmpresa: formData.nombreEmpresa,
-            rutEmpresa: formData.rutEmpresa,
-            direccion: formData.direccion,
-            region: formData.region,
-            comuna: formData.comuna,
-            sitioWeb: formData.sitioWeb,
-            descripcion: formData.descripcion
-          };
-        } else if (userType === "corredor") {
-          dataToUpdate = {
-            ...dataToUpdate,
-            nombre: formData.nombre,
-            rut: formData.rut,
-            direccion: formData.direccion,
-            region: formData.region,
-            comuna: formData.comuna,
-            sitioWeb: formData.sitioWeb,
-            descripcion: formData.descripcion
-          };
-        } else if (userType === "agenciacorretaje") {
-          dataToUpdate = {
-            ...dataToUpdate,
-            razonSocial: formData.razonSocial,
-            rut: formData.rut,
-            direccion: formData.direccion,
-            region: formData.region,
-            comuna: formData.comuna,
-            sitioWeb: formData.sitioWeb,
-            descripcion: formData.descripcion
-          };
+      // Si se ingresó una nueva contraseña, actualizarla
+      if (contrasena && contrasena !== "••••••••" && currentPassword) {
+        try {
+          const credential = EmailAuthProvider.credential(
+            user.email,
+            currentPassword
+          );
+          await reauthenticateWithCredential(user, credential);
+          await updatePassword(user, contrasena);
+          Alert.alert("Éxito", "Contraseña actualizada correctamente");
+        } catch (error) {
+          console.error("Error al actualizar contraseña:", error);
+          Alert.alert("Error", "No se pudo actualizar la contraseña");
         }
-        
-        await updateDoc(userDocRef, dataToUpdate);
-        Alert.alert("Éxito", "Perfil actualizado correctamente");
-        setEditing(false);
-      } else {
-        Alert.alert("Error", "No se pudo encontrar el documento del usuario");
       }
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
-      
-      let errorMessage = "Error al actualizar perfil. Intente nuevamente.";
-      
-      if (error.code === "auth/requires-recent-login") {
-        errorMessage = "Esta operación es sensible y requiere que vuelva a iniciar sesión. Por favor, cierre sesión y vuelva a ingresar.";
-      } else if (error.code === "auth/email-already-in-use") {
-        errorMessage = "El correo electrónico ya está en uso por otra cuenta.";
-      }
-      
-      Alert.alert("Error", errorMessage);
+      Alert.alert("Error", "No se pudo actualizar el perfil");
     } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Función para cambiar la contraseña
-  const handleChangePassword = async () => {
-    if (!validatePasswordChange()) {
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      
-      if (!user) {
-        Alert.alert("Error", "Usuario no autenticado");
-        setLoading(false);
-        return;
-      }
-      
-      // Reautenticar al usuario antes de cambiar la contraseña
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
-      
-      // Cambiar la contraseña
-      await updatePassword(user, newPassword);
-      
-      Alert.alert("Éxito", "Contraseña actualizada correctamente");
+      setSaving(false);
       setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setShowChangePassword(false);
-    } catch (error) {
-      console.error("Error al cambiar contraseña:", error);
-      
-      let errorMessage = "Error al cambiar la contraseña. Intente nuevamente.";
-      
-      if (error.code === "auth/wrong-password") {
-        errorMessage = "La contraseña actual es incorrecta.";
-      } else if (error.code === "auth/requires-recent-login") {
-        errorMessage = "Esta operación es sensible y requiere que vuelva a iniciar sesión. Por favor, cierre sesión y vuelva a ingresar.";
-      }
-      
-      Alert.alert("Error", errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
+
+  const volver = () => {
+    navigation.goBack();
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ImageBackground
+          style={styles.background}
+          source={require("../../../assets/images/Group.png")}
+        >
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#009245" />
+            <Text style={styles.loadingText}>Cargando datos...</Text>
+          </View>
+        </ImageBackground>
+      </SafeAreaView>
+    );
+  }
   
-  // Función para cerrar sesión
-  const handleLogout = async () => {
-    try {
-      const auth = getAuth();
-      await signOut(auth);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Signin" }],
-      });
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      Alert.alert("Error", "No se pudo cerrar sesión");
-    }
-  };
-  
-  // Función para renderizar campos según el tipo de usuario
-  const renderUserTypeFields = () => {
-    if (userType === "users") {
-      return (
-        <>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre completo</Text>
-            <TextInput
-              style={[styles.input, errors.nombre && styles.inputError]}
-              value={formData.nombre}
-              onChangeText={(text) => setFormData({...formData, nombre: text})}
-              placeholder="Ingrese su nombre completo"
-              editable={editing}
-            />
-            {errors.nombre && <Text style={styles.errorText}>{errors.nombre}</Text>}
+  // Si no hay datos cargados después de que loading es false, mostrar mensaje alternativo
+  if (!loading && (!userDocRef || !userDocData)) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ImageBackground
+          style={styles.background}
+          source={require("../../../assets/images/Group.png")}
+        >
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={60} color="#FF6B6B" />
+            <Text style={styles.errorTitle}>No se encontraron datos</Text>
+            <Text style={styles.errorText}>
+              No pudimos encontrar la información de tu perfil. Esto puede deberse a un problema
+              de conexión o a que tu sesión ha expirado.
+            </Text>
+            <TouchableOpacity 
+              style={styles.errorButton}
+              onPress={() => {
+                // Intenta cargar nuevamente
+                cargarDatosPerfil();
+              }}
+            >
+              <Text style={styles.errorButtonText}>Intentar nuevamente</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.errorButton, styles.secondaryButton]}
+              onPress={() => navigation.navigate("Home")}
+            >
+              <Text style={styles.secondaryButtonText}>Volver al inicio</Text>
+            </TouchableOpacity>
           </View>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>RUT</Text>
-            <TextInput
-              style={[styles.input, errors.rut && styles.inputError]}
-              value={formData.rut}
-              onChangeText={(text) => setFormData({...formData, rut: text})}
-              placeholder="Ingrese su RUT"
-              editable={editing}
-            />
-            {errors.rut && <Text style={styles.errorText}>{errors.rut}</Text>}
-          </View>
-        </>
-      );
-    } else if (userType === "inmobiliaria") {
-      return (
-        <>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre de la Empresa</Text>
-            <TextInput
-              style={[styles.input, errors.nombreEmpresa && styles.inputError]}
-              value={formData.nombreEmpresa}
-              onChangeText={(text) => setFormData({...formData, nombreEmpresa: text})}
-              placeholder="Ingrese el nombre de la empresa"
-              editable={editing}
-            />
-            {errors.nombreEmpresa && <Text style={styles.errorText}>{errors.nombreEmpresa}</Text>}
-          </View>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>RUT Empresa</Text>
-            <TextInput
-              style={[styles.input, errors.rutEmpresa && styles.inputError]}
-              value={formData.rutEmpresa}
-              onChangeText={(text) => setFormData({...formData, rutEmpresa: text})}
-              placeholder="Ingrese el RUT de la empresa"
-              editable={editing}
-            />
-            {errors.rutEmpresa && <Text style={styles.errorText}>{errors.rutEmpresa}</Text>}
-          </View>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Sitio Web</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.sitioWeb}
-              onChangeText={(text) => setFormData({...formData, sitioWeb: text})}
-              placeholder="Ingrese la URL del sitio web"
-              editable={editing}
-              autoCapitalize="none"
-            />
-          </View>
-        </>
-      );
-    }
-  };
-};  
+        </ImageBackground>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" />
+      <ImageBackground
+        style={styles.background}
+        source={require("../../../assets/images/Group.png")}
+      >
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : hp("5%")}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Editar Perfil</Text>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  {userType === "agenciacorretaje" ? "Razón Social" : "Nombres"}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={userType === "agenciacorretaje" ? "Razón Social" : "Nombres"}
+                  value={nombres}
+                  onChangeText={(text) => {
+                    setNombres(text);
+                    setCamposEditados({...camposEditados, nombres: true});
+                  }}
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  {userType === "agenciacorretaje" ? "Dirección" : "Apellidos"}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={userType === "agenciacorretaje" ? "Dirección" : "Apellidos"}
+                  value={apellidos}
+                  onChangeText={(text) => {
+                    setApellidos(text);
+                    setCamposEditados({...camposEditados, apellidos: true});
+                  }}
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>RUT</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="00.000.000-0"
+                  value={rut}
+                  onChangeText={(text) => {
+                    setRut(text);
+                    setCamposEditados({...camposEditados, rut: true});
+                  }}
+                  keyboardType="default"
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Correo electrónico</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="correo@ejemplo.com"
+                  value={correo}
+                  onChangeText={(text) => {
+                    setCorreo(text);
+                    setCamposEditados({...camposEditados, correo: true});
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Teléfono</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="912345678"
+                  value={telefono}
+                  onChangeText={(text) => {
+                    setTelefono(text);
+                    setCamposEditados({...camposEditados, telefono: true});
+                  }}
+                  keyboardType="phone-pad"
+                />
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Contraseña</Text>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Contraseña"
+                    secureTextEntry={!showPassword}
+                    value={contrasena}
+                    onChangeText={(text) => {
+                      setContrasena(text);
+                      setCamposEditados({...camposEditados, contrasena: true});
+                    }}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeButton}
+                  >
+                    <Ionicons
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={24}
+                      color="#000000"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity style={styles.buttonVolver} onPress={volver}>
+                  <Text style={styles.buttonVolverText}>Volver</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.buttonGuardar} 
+                  onPress={actualizarPerfil}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.buttonGuardarText}>Aplicar Cambios</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    paddingVertical: hp("2%"),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  formContainer: {
+    width: wp("85%"),
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: wp("5%"),
+    marginVertical: hp("2%"),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#25272B",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 15,
+    width: "100%",
+  },
+  inputLabel: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 5,
+    fontWeight: "500",
+  },
+  input: {
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#CCCCCC",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 15,
+    fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#CCCCCC",
+    paddingHorizontal: 15,
+    backgroundColor: "#FFFFFF",
+    height: 50,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+  },
+  eyeButton: {
+    padding: 8,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  buttonVolver: {
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#CC0000",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "45%",
+  },
+  buttonVolverText: {
+    color: "#CC0000",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  buttonGuardar: {
+    borderRadius: 25,
+    backgroundColor: "#009245",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "50%",
+  },
+  buttonGuardarText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+});

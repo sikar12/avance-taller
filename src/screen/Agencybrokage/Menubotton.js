@@ -157,17 +157,19 @@ const IconMenuButton = () => {
     setMenuVisible(false);
     
     // Navegar a la pantalla correspondiente
-    if (screenName === "ProfileSetting") {
-      navigation.navigate("ProfileSetting", { 
+    if (screenName === "Porfileseting") {
+      navigation.navigate("Porfileseting", { 
         userData: userData,
         userType: userType
       });
     } else if (screenName === "MyPublications") {
       navigation.navigate("MyPublications");
-    } else if (screenName === "AddProject") {
-      navigation.navigate("AddProject");
-    } else if (screenName === "MyProjects") {
-      navigation.navigate("MyProjects");
+    } else if (screenName === "AddPublication") {
+      navigation.navigate("AddPublication");
+    } else if (screenName === "Meeting_date") {
+      navigation.navigate("Meeting_date");
+    } else if (screenName === "Employed") {
+      navigation.navigate("Employed");
     } else if (screenName === "Settings") {
       navigation.navigate("Settings");
     }
@@ -175,11 +177,12 @@ const IconMenuButton = () => {
 
   // Opciones del menú con sus iconos
   const menuOptions = [
-    { id: 1, title: "Mi perfil", icon: "person-outline", screen: "ProfileSetting" },
+    { id: 1, title: "Mi perfil", icon: "person-outline", screen: "Porfileseting" },
     { id: 2, title: "Mis publicaciones", icon: "list-outline", screen: "MyPublications" },
-    { id: 3, title: "Añadir proyecto", icon: "add-circle-outline", screen: "AddProject" },
-    { id: 4, title: "Mis proyectos", icon: "folder-outline", screen: "MyProjects" },
-    { id: 5, title: "Configuración", icon: "settings-outline", screen: "Settings" }
+    { id: 3, title: "Añadir publicación", icon: "add-circle-outline", screen: "AddPublication" },
+    { id: 4, title: "Agenda", icon: "calendar-outline", screen: "Meeting_date" },
+    { id: 5, title: "Agentes", icon: "people-outline", screen: "Employed" },
+    { id: 6, title: "Configuración", icon: "settings-outline", screen: "Settings" }
   ];
 
   return (
