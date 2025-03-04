@@ -18,9 +18,11 @@ import Form_ac from "./src/screen/Loggin/Form_ac";
 import Perfil from "./src/screen/RealState/Perfil";
 import Agencymapa from "./src/screen/Agencybrokage/Agencymapa";
 import Porfileseting from "./src/screen/Agencybrokage/Porfileseting";
-import Addpublication from "./src/screen/Agencybrokage/Addpublication";
+import AddPublication from "./src/screen/Agencybrokage/Addpublication";
 import Employed from "./src/screen/Agencybrokage/Employed";
 import Meeting_date from "./src/screen/Agencybrokage/Meeting_date";
+import MyPublications from "./src/screen/Agencybrokage/Mypublications";
+import EditPublication from "./src/screen/Agencybrokage/Editpublication";
 const Stack = createNativeStackNavigator();
 
 const { width, height } = Dimensions.get("window");
@@ -53,9 +55,11 @@ export default function App() {
         <Stack.Screen name="DeleteP" component={DeleteP} />
         <Stack.Screen name="UpdateProp" component={UpdateProp} />
         <Stack.Screen name="Porfileseting" component={Porfileseting} />
-        <Stack.Screen name="Addpublication" component={Addpublication} />
+        <Stack.Screen name="AddPublication" component={AddPublication} />
         <Stack.Screen name="Employed" component={Employed} />
         <Stack.Screen name="Meeting_date" component={Meeting_date} />
+        <Stack.Screen name="MyPublications" component={MyPublications} />
+        <Stack.Screen name="EditPublication" component={EditPublication} />
       </Stack.Navigator>
     </NavigationContainer>
   );

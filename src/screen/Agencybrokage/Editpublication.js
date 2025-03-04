@@ -19,15 +19,13 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { getAuth } from "firebase/auth";
 import {
   getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
+  doc,
+  getDoc,
+  updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import {
@@ -40,14 +38,22 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { wp, hp } from "../../utils/ResponsiveUtils";
 
-export default function AddPublication() {
+export default function EditPublication() {
   const navigation = useNavigation();
+  const route = useRoute();
+  
+  // Obtener los datos de la publicación a editar desde los parámetros de navegación
+  const publicationParam = route.params?.publication;
+  
   const [loading, setLoading] = useState(false);
+  const [loadingPublication, setLoadingPublication] = useState(true);
   const [image, setImage] = useState(null);
+  const [imageChanged, setImageChanged] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [userData, setUserData] = useState(null);
   
   // Estado para los campos del formulario
+  const [publicationId, setPublicationId] = useState("");
   const [tipoPropiedad, setTipoPropiedad] = useState("Casa");
   const [operacion, setOperacion] = useState("Arriendo y Venta");
   const [estado, setEstado] = useState("Nuevo");
@@ -55,6 +61,7 @@ export default function AddPublication() {
   const [descripcion, setDescripcion] = useState("");
   const [precioMin, setPrecioMin] = useState("");
   const [precioMax, setPrecioMax] = useState("");
+  const [imagenUrl, setImagenUrl] = useState(null);
   
   // Estados para el mapa
   const [mapVisible, setMapVisible] = useState(false);
@@ -109,7 +116,49 @@ export default function AddPublication() {
     
     // Cargar información del usuario
     getUserData();
+    
+    // Cargar datos de la publicación si existe
+    if (publicationParam) {
+      loadPublicationData(publicationParam);
+    } else {
+      setLoadingPublication(false);
+      Alert.alert("Error", "No se encontró la publicación a editar", [
+        { text: "OK", onPress: () => navigation.goBack() }
+      ]);
+    }
   }, []);
+  
+  const loadPublicationData = (publication) => {
+    try {
+      // Extraer el ID de la publicación
+      setPublicationId(publication.id);
+      
+      // Cargar todos los datos en el formulario
+      setTipoPropiedad(publication.tipoPropiedad || "Casa");
+      setOperacion(publication.operacion || "Arriendo y Venta");
+      setEstado(publication.estado || "Nuevo");
+      setDireccion(publication.direccion || "");
+      setDescripcion(publication.descripcion || "");
+      setPrecioMin(publication.precioMin ? publication.precioMin.toString() : "");
+      setPrecioMax(publication.precioMax ? publication.precioMax.toString() : "");
+      
+      // Cargar la imagen existente si hay
+      if (publication.imagenUrl) {
+        setImagenUrl(publication.imagenUrl);
+      }
+      
+      // Cargar ubicación si existe
+      if (publication.ubicacion) {
+        setLocation(publication.ubicacion);
+      }
+      
+      setLoadingPublication(false);
+    } catch (error) {
+      console.error("Error al cargar datos de la publicación:", error);
+      setLoadingPublication(false);
+      Alert.alert("Error", "No se pudieron cargar los datos de la publicación");
+    }
+  };
   
   const getUserData = async () => {
     try {
@@ -129,17 +178,12 @@ export default function AddPublication() {
       const collections = ["users", "inmobiliaria", "corredor", "agenciacorretaje"];
       
       for (const collectionName of collections) {
-        const userQuery = query(
-          collection(db, collectionName),
-          where("uid", "==", uid)
-        );
+        const userDoc = await getDoc(doc(db, collectionName, uid));
         
-        const snapshot = await getDocs(userQuery);
-        
-        if (!snapshot.empty) {
+        if (userDoc.exists()) {
           setUserData({
-            ...snapshot.docs[0].data(),
-            id: snapshot.docs[0].id,
+            ...userDoc.data(),
+            id: userDoc.id,
             collection: collectionName
           });
           break;
@@ -161,6 +205,7 @@ export default function AddPublication() {
       
       if (!result.canceled) {
         setImage(result.assets[0].uri);
+        setImageChanged(true);
       }
     } catch (error) {
       console.error("Error al seleccionar imagen:", error);
@@ -169,7 +214,7 @@ export default function AddPublication() {
   };
   
   const uploadImage = async () => {
-    if (!image) return null;
+    if (!image || !imageChanged) return imagenUrl; // Mantener la URL existente si no se cambió
     
     try {
       setUploading(true);
@@ -212,7 +257,7 @@ export default function AddPublication() {
     } catch (error) {
       console.error("Error en el proceso de subida:", error);
       setUploading(false);
-      return null;
+      return imagenUrl; // Mantener la URL anterior en caso de error
     }
   };
   
@@ -267,7 +312,7 @@ export default function AddPublication() {
     closeMap();
   };
   
-  const guardarPublicacion = async () => {
+  const actualizarPublicacion = async () => {
     // Validación básica
     if (!direccion || !descripcion) {
       Alert.alert("Error", "Por favor, complete al menos la dirección y descripción");
@@ -283,9 +328,10 @@ export default function AddPublication() {
     try {
       setLoading(true);
       
-      let imageUrl = null;
-      if (image) {
-        imageUrl = await uploadImage();
+      // Procesar imagen si cambió
+      let finalImageUrl = imagenUrl;
+      if (imageChanged) {
+        finalImageUrl = await uploadImage();
       }
       
       const auth = getAuth();
@@ -299,7 +345,7 @@ export default function AddPublication() {
       
       const db = getFirestore();
       
-      // Datos de la publicación
+      // Datos actualizados de la publicación
       const publicacionData = {
         tipoPropiedad,
         operacion,
@@ -308,9 +354,7 @@ export default function AddPublication() {
         descripcion,
         precioMin: precioMin ? Number(precioMin) : 0,
         precioMax: precioMax ? Number(precioMax) : 0,
-        imagenUrl: imageUrl,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
+        imagenUrl: finalImageUrl,
         updatedAt: serverTimestamp()
       };
       
@@ -322,12 +366,13 @@ export default function AddPublication() {
         };
       }
       
-      // Guardar en Firestore
-      await addDoc(collection(db, "publicaciones"), publicacionData);
+      // Actualizar en Firestore
+      const publicacionRef = doc(db, "publicaciones", publicationId);
+      await updateDoc(publicacionRef, publicacionData);
       
       Alert.alert(
         "Éxito",
-        "Publicación creada correctamente",
+        "Publicación actualizada correctamente",
         [
           {
             text: "OK",
@@ -336,8 +381,8 @@ export default function AddPublication() {
         ]
       );
     } catch (error) {
-      console.error("Error al guardar publicación:", error);
-      Alert.alert("Error", "No se pudo guardar la publicación: " + error.message);
+      console.error("Error al actualizar publicación:", error);
+      Alert.alert("Error", "No se pudo actualizar la publicación: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -361,6 +406,18 @@ export default function AddPublication() {
       </Text>
     </TouchableOpacity>
   );
+
+  if (loadingPublication) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#009245" />
+          <Text style={styles.loadingText}>Cargando datos de la publicación...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -390,14 +447,18 @@ export default function AddPublication() {
               style={styles.imageSelector}
               onPress={pickImage}
             >
-              {image ? (
-                <Image source={{ uri: image }} style={styles.previewImage} />
+              {(image || imagenUrl) ? (
+                <Image source={{ uri: image || imagenUrl }} style={styles.previewImage} />
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Ionicons name="camera" size={40} color="#AAAAAA" />
                   <Text style={styles.imagePlaceholderText}>Agregar fotografía</Text>
                 </View>
               )}
+              <View style={styles.editImageOverlay}>
+                <Ionicons name="pencil" size={18} color="#FFFFFF" />
+                <Text style={styles.editImageText}>Editar</Text>
+              </View>
             </TouchableOpacity>
             
             {/* Tipo de propiedad */}
@@ -548,19 +609,22 @@ export default function AddPublication() {
             
             {/* Botones de acción */}
             <View style={styles.buttonsContainer}>
-              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-                <Text style={styles.photoButtonText}>Editar fotografías</Text>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={() => navigation.goBack()}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 style={styles.saveButton}
-                onPress={guardarPublicacion}
+                onPress={actualizarPublicacion}
                 disabled={loading || uploading}
               >
                 {loading || uploading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.saveButtonText}>Aplicar cambios</Text>
+                  <Text style={styles.saveButtonText}>Guardar cambios</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -650,6 +714,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: hp("2%"),
+    fontSize: wp("4%"),
+    color: "#666",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -685,6 +759,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#EEEEEE",
+    position: "relative",
   },
   previewImage: {
     width: "100%",
@@ -701,6 +776,22 @@ const styles = StyleSheet.create({
   imagePlaceholderText: {
     color: "#888888",
     marginTop: 8,
+    fontSize: wp("3.5%"),
+  },
+  editImageOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: hp("0.8%"),
+  },
+  editImageText: {
+    color: "#FFFFFF",
+    marginLeft: wp("1%"),
     fontSize: wp("3.5%"),
   },
   sectionContainer: {
@@ -839,9 +930,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: hp("3%"),
   },
-  photoButton: {
+  cancelButton: {
     borderWidth: 1,
-    borderColor: "#009245",
+    borderColor: "#FF3B30",
     borderRadius: 50,
     paddingVertical: hp("1.5%"),
     paddingHorizontal: wp("5%"),
@@ -849,8 +940,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "48%",
   },
-  photoButtonText: {
-    color: "#009245",
+  cancelButtonText: {
+    color: "#FF3B30",
     fontSize: wp("3.8%"),
     fontWeight: "500",
   },
