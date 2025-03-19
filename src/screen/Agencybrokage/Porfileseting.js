@@ -148,7 +148,7 @@ export default function ProfileSetting() {
         setTelefono(userData.telefono || userData.telefonoContacto || "");
       } else if (userCollection === "agenciacorretaje") {
         // Agencias de corretaje
-        setNombres(userData.razonSocial || userData.nombre || "");
+        setNombres(userData.nombre ||"");
         setApellidos(userData.direccion || ""); // Usar dirección en lugar de apellidos/representante legal
         setRut(userData.rut || "");
         setTelefono(userData.telefono || userData.telefonoContacto || "");
@@ -298,7 +298,7 @@ export default function ProfileSetting() {
         dataToUpdate.rut = rut;
         dataToUpdate.telefono = telefono;
       } else if (userType === "agenciacorretaje") {
-        dataToUpdate.razonSocial = nombres;
+        dataToUpdate.nombre = nombres;
         dataToUpdate.direccion = apellidos; // Guardar como dirección en lugar de representanteLegal
         dataToUpdate.rut = rut;
         dataToUpdate.telefono = telefono;
@@ -408,11 +408,11 @@ export default function ProfileSetting() {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>
-                  {userType === "agenciacorretaje" ? "Razón Social" : "Nombres"}
+                  {userType === "agenciacorretaje" ? "Nombre" : "Nombres"}
                 </Text>
                 <TextInput
                   style={styles.input}
-                  placeholder={userType === "agenciacorretaje" ? "Razón Social" : "Nombres"}
+                  placeholder={userType === "agenciacorretaje" ? "Nombre" : "Nombres"}
                   value={nombres}
                   onChangeText={(text) => {
                     setNombres(text);
@@ -649,5 +649,47 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "500",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  errorButton: {
+    backgroundColor: '#009245',
+    padding: 15,
+    borderRadius: 25,
+    width: '80%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  errorButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  secondaryButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#009245',
+  },
+  secondaryButtonText: {
+    color: '#009245',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
