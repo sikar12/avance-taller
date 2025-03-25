@@ -15,7 +15,7 @@ import {
   Alert,
   SafeAreaView,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
@@ -24,7 +24,7 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
 } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import { wp, hp } from "../../utils/ResponsiveUtils";
@@ -36,7 +36,7 @@ export default function Signin() {
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  
+
   const navigation = useNavigation();
   const db = getFirestore();
 
@@ -60,7 +60,7 @@ export default function Signin() {
   const handleLogin = async () => {
     // Validaciones
     let isValid = true;
-    
+
     if (!correo) {
       setEmailError("Por favor, ingrese su correo electrónico");
       isValid = false;
@@ -68,7 +68,7 @@ export default function Signin() {
       setEmailError("Formato de correo electrónico inválido");
       isValid = false;
     }
-    
+
     if (!contraseña) {
       setPasswordError("Por favor, ingrese su contraseña");
       isValid = false;
@@ -76,12 +76,12 @@ export default function Signin() {
       setPasswordError("La contraseña debe tener al menos 6 caracteres");
       isValid = false;
     }
-    
+
     if (!isValid) return;
 
     setLoading(true);
     const auth = getAuth();
-    
+
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -96,18 +96,24 @@ export default function Signin() {
           "Correo no verificado",
           "Por favor, verifica tu correo antes de iniciar sesión.",
           [
-            { 
-              text: "Reenviar verificación", 
+            {
+              text: "Reenviar verificación",
               onPress: async () => {
                 try {
                   await user.sendEmailVerification();
-                  Alert.alert("Correo enviado", "Se ha enviado un nuevo correo de verificación");
+                  Alert.alert(
+                    "Correo enviado",
+                    "Se ha enviado un nuevo correo de verificación"
+                  );
                 } catch (error) {
-                  Alert.alert("Error", "No se pudo enviar el correo de verificación");
+                  Alert.alert(
+                    "Error",
+                    "No se pudo enviar el correo de verificación"
+                  );
                 }
-              } 
+              },
             },
-            { text: "Aceptar" }
+            { text: "Aceptar" },
           ]
         );
         return;
@@ -149,19 +155,31 @@ export default function Signin() {
         setLoading(false);
 
         if (!usersSnapshot.empty) {
-          console.log("Documento encontrado en 'users':", usersSnapshot.docs[0].data());
+          console.log(
+            "Documento encontrado en 'users':",
+            usersSnapshot.docs[0].data()
+          );
           Alert.alert("Éxito", "Bienvenido persona natural.");
           navigation.navigate("Home");
         } else if (!inmobiliariaSnapshot.empty) {
-          console.log("Documento encontrado en 'inmobiliaria':", inmobiliariaSnapshot.docs[0].data());
+          console.log(
+            "Documento encontrado en 'inmobiliaria':",
+            inmobiliariaSnapshot.docs[0].data()
+          );
           Alert.alert("Éxito", "Bienvenido inmobiliaria.");
-          navigation.navigate("Home");
+          navigation.navigate("HomeRealstate");
         } else if (!corredorSnapshot.empty) {
-          console.log("Documento encontrado en 'corredor':", corredorSnapshot.docs[0].data());
+          console.log(
+            "Documento encontrado en 'corredor':",
+            corredorSnapshot.docs[0].data()
+          );
           Alert.alert("Éxito", "Bienvenido corredor.");
           navigation.navigate("Home");
         } else if (!agenciacorretajeSnapshot.empty) {
-          console.log("Documento encontrado en 'agenciacorretaje':", agenciacorretajeSnapshot.docs[0].data());
+          console.log(
+            "Documento encontrado en 'agenciacorretaje':",
+            agenciacorretajeSnapshot.docs[0].data()
+          );
           Alert.alert("Éxito", "Bienvenido agencia de corretaje.");
           navigation.navigate("Home");
         } else {
@@ -170,14 +188,17 @@ export default function Signin() {
       } catch (error) {
         setLoading(false);
         console.error("Error al consultar colecciones:", error);
-        Alert.alert("Error", "Error al buscar información del usuario. Por favor, intente nuevamente.");
+        Alert.alert(
+          "Error",
+          "Error al buscar información del usuario. Por favor, intente nuevamente."
+        );
       }
     } catch (error) {
       setLoading(false);
       console.error("Error de inicio de sesión:", error);
-      
+
       let errorMessage;
-      switch(error.code) {
+      switch (error.code) {
         case "auth/wrong-password":
           setPasswordError("Contraseña incorrecta");
           errorMessage = "Contraseña incorrecta. Intente nuevamente.";
@@ -195,7 +216,7 @@ export default function Signin() {
         default:
           errorMessage = "Error al iniciar sesión. Intente nuevamente.";
       }
-      
+
       Alert.alert("Error", errorMessage);
     }
   };
@@ -214,7 +235,7 @@ export default function Signin() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={Platform.OS === "ios" ? 0 : hp("5%")}
           >
-            <ScrollView 
+            <ScrollView
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
@@ -231,7 +252,10 @@ export default function Signin() {
 
                 <View style={styles.inputContainer}>
                   <TextInput
-                    style={[styles.inputText, emailError ? styles.inputError : null]}
+                    style={[
+                      styles.inputText,
+                      emailError ? styles.inputError : null,
+                    ]}
                     placeholder="Ingrese su correo"
                     value={correo}
                     onChangeText={handleCorreoChange}
@@ -239,11 +263,18 @@ export default function Signin() {
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+                  {emailError ? (
+                    <Text style={styles.errorText}>{emailError}</Text>
+                  ) : null}
                 </View>
 
                 <View style={styles.inputContainer}>
-                  <View style={[styles.passwordContainer, passwordError ? styles.inputError : null]}>
+                  <View
+                    style={[
+                      styles.passwordContainer,
+                      passwordError ? styles.inputError : null,
+                    ]}
+                  >
                     <TextInput
                       style={styles.passwordInput}
                       placeholder="Ingrese su contraseña"
@@ -256,7 +287,7 @@ export default function Signin() {
                     <TouchableOpacity
                       onPress={() => setShowPassword(!showPassword)}
                       style={styles.eyeButton}
-                      hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       <Icon
                         name={showPassword ? "eye" : "eye-off"}
@@ -265,11 +296,13 @@ export default function Signin() {
                       />
                     </TouchableOpacity>
                   </View>
-                  {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+                  {passwordError ? (
+                    <Text style={styles.errorText}>{passwordError}</Text>
+                  ) : null}
                 </View>
 
-                <TouchableOpacity 
-                  style={styles.button} 
+                <TouchableOpacity
+                  style={styles.button}
                   onPress={handleLogin}
                   disabled={loading}
                 >
@@ -291,7 +324,7 @@ export default function Signin() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   background: {
     flex: 1,

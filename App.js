@@ -23,6 +23,8 @@ import Employed from "./src/screen/Agencybrokage/Employed";
 import Meeting_date from "./src/screen/Agencybrokage/Meeting_date";
 import MyPublications from "./src/screen/Agencybrokage/Mypublications";
 import EditPublication from "./src/screen/Agencybrokage/Editpublication";
+import HomemapsRealstate from "./src/screen/RealState/Homerealstate";
+import AddProject from "./src/screen/RealState/Addproject";
 const Stack = createNativeStackNavigator();
 
 const { width, height } = Dimensions.get("window");
@@ -51,6 +53,7 @@ export default function App() {
         <Stack.Screen name="Singin" component={Singin} />
         <Stack.Screen name="Verification" component={Verification} />
         <Stack.Screen name="Home" component={Agencymapa} />
+        <Stack.Screen name="HomeRealstate" component={HomemapsRealstate} />
         <Stack.Screen name="Pllist" component={ListProjet} />
         <Stack.Screen name="DeleteP" component={DeleteP} />
         <Stack.Screen name="UpdateProp" component={UpdateProp} />
@@ -60,6 +63,7 @@ export default function App() {
         <Stack.Screen name="Meeting_date" component={Meeting_date} />
         <Stack.Screen name="MyPublications" component={MyPublications} />
         <Stack.Screen name="EditPublication" component={EditPublication} />
+        <Stack.Screen name="AddProject" component={AddProject} />
       </Stack.Navigator>
     </NavigationContainer>
   );
