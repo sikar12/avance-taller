@@ -126,7 +126,7 @@ export default function AddProject() {
       const uid = user.uid;
       
       // Buscar en qué colección está el usuario
-      const collections = ["users", "inmobiliaria", "corredor", "agenciacorretaje"];
+      const collections = ["agenciacorretaje"];
       
       for (const collectionName of collections) {
         const userQuery = query(
@@ -267,6 +267,7 @@ export default function AddProject() {
     closeMap();
   };
   
+  
   const guardarProyecto = async () => {
     // Validación básica
     if (!nombreProyecto || !direccion || !descripcion) {
@@ -326,7 +327,7 @@ export default function AddProject() {
         [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Home")
+            onPress: () => navigation.navigate("HomeRealstate")
           }
         ]
       );

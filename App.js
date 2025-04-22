@@ -5,8 +5,7 @@ import DeleteP from "./src/screen/PropertyBrokerage/deleteP";
 import CRUD from "./src/screen/PropertyBrokerage/property";
 import UpdateProp from "./src/screen/PropertyBrokerage/updateProp";
 import { Dimensions } from "react-native";
-import Addproject from "./src/screen/RealState/Addproject";
-import ListProjet from "./src/screen/RealState/Listprojet";
+import ListProject from "./src/screen/RealState/Listproject";
 import Loggin from "./src/screen/Loggin/Homelogg";
 import Register from "./src/screen/Loggin/Register";
 import Form_np from "./src/screen/Loggin/Form_np";
@@ -15,7 +14,6 @@ import Singin from "./src/screen/Loggin/Singin";
 import Form_inmo from "./src/screen/Loggin/Form_Inmo";
 import Form_co from "./src/screen/Loggin/Form_co";
 import Form_ac from "./src/screen/Loggin/Form_ac";
-import Perfil from "./src/screen/RealState/Perfil";
 import Agencymapa from "./src/screen/Agencybrokage/Agencymapa";
 import Porfileseting from "./src/screen/Agencybrokage/Porfileseting";
 import AddPublication from "./src/screen/Agencybrokage/Addpublication";
@@ -25,6 +23,8 @@ import MyPublications from "./src/screen/Agencybrokage/Mypublications";
 import EditPublication from "./src/screen/Agencybrokage/Editpublication";
 import HomemapsRealstate from "./src/screen/RealState/Homerealstate";
 import AddProject from "./src/screen/RealState/Addproject";
+import Homelogg from "./src/screen/Loggin/Homelogg";
+
 const Stack = createNativeStackNavigator();
 
 const { width, height } = Dimensions.get("window");
@@ -46,7 +46,6 @@ export default function App() {
         <Stack.Screen name="Loggin" component={Loggin} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Form_np" component={Form_np} />
-        <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="Inmo" component={Form_inmo} />
         <Stack.Screen name="Co" component={Form_co} />
         <Stack.Screen name="Ac" component={Form_ac} />
@@ -54,7 +53,7 @@ export default function App() {
         <Stack.Screen name="Verification" component={Verification} />
         <Stack.Screen name="Home" component={Agencymapa} />
         <Stack.Screen name="HomeRealstate" component={HomemapsRealstate} />
-        <Stack.Screen name="Pllist" component={ListProjet} />
+        <Stack.Screen name="ListProject" component={ListProject} />
         <Stack.Screen name="DeleteP" component={DeleteP} />
         <Stack.Screen name="UpdateProp" component={UpdateProp} />
         <Stack.Screen name="Porfileseting" component={Porfileseting} />
@@ -64,6 +63,7 @@ export default function App() {
         <Stack.Screen name="MyPublications" component={MyPublications} />
         <Stack.Screen name="EditPublication" component={EditPublication} />
         <Stack.Screen name="AddProject" component={AddProject} />
+        <Stack.Screen name="Homelogg"component ={Homelogg} />
       </Stack.Navigator>
     </NavigationContainer>
   );

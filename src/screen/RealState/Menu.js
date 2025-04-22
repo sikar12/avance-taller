@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
 const Menu = () => {
@@ -128,7 +128,10 @@ const Menu = () => {
           }
         } catch (error) {
           console.error(`Error al buscar en ${collectionName}:`, error);
-          Alert.alert("Error", `No se pudieron cargar los datos de ${collectionName}`);
+          Alert.alert(
+            "Error al cargar datos", 
+            `No se pudieron obtener tus datos de usuario desde ${collectionName}. Por favor, intenta nuevamente.`
+          );
         }
       }
       
@@ -141,9 +144,26 @@ const Menu = () => {
       }
     } catch (error) {
       console.error("Error general al obtener datos del usuario:", error);
-      Alert.alert("Error", "No se pudieron cargar los datos del usuario");
+      Alert.alert(
+        "Error de conexión", 
+        "No se pudieron cargar los datos de tu perfil. Verifica tu conexión a internet e intenta nuevamente."
+      );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      setMenuVisible(false);
+      // Navegar a la pantalla de login
+      navigation.navigate("Homelogg");
+      Alert.alert("Sesión cerrada", "Has cerrado sesión correctamente");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      Alert.alert("Error", "No se pudo cerrar la sesión: " + error.message);
     }
   };
 
@@ -157,18 +177,37 @@ const Menu = () => {
   const handleNavigation = (screenName) => {
     setMenuVisible(false);
     
+    // Manejar cierre de sesión
+    if (screenName === "logout") {
+      Alert.alert(
+        "Cerrar sesión",
+        "¿Estás seguro que deseas cerrar sesión?",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Sí, cerrar sesión",
+            onPress: handleLogout
+          }
+        ]
+      );
+      return;
+    }
+    
     // Navegar a la pantalla correspondiente
     if (screenName === "Porfileseting") {
       navigation.navigate("Porfileseting", { 
         userData: userData,
         userType: userType
       });
-    } else if (screenName === "MyPublications") {
-      navigation.navigate("MyPublications");
+    } else if (screenName === "ListProject") {
+      navigation.navigate("ListProject");
     } else if (screenName === "AddPublication") {
       navigation.navigate("AddPublication");
     } else if (screenName === "AddProject") {
-      navigation.navigate("AddProject"); // Corrección: Navegación a la pantalla Addproject
+      navigation.navigate("AddProject");
     } else if (screenName === "Meeting_date") {
       navigation.navigate("Meeting_date");
     } else if (screenName === "Employed") {
@@ -181,12 +220,13 @@ const Menu = () => {
   // Opciones del menú con sus iconos
   const menuOptions = [
     { id: 1, title: "Mi perfil", icon: "person-outline", screen: "Porfileseting" },
-    { id: 2, title: "Mis publicaciones", icon: "list-outline", screen: "MyPublications" },
+    { id: 2, title: "Mis publicaciones", icon: "list-outline", screen: "ListProject" },
     { id: 3, title: "Añadir publicación", icon: "add-circle-outline", screen: "AddPublication" },
-    { id: 4, title: "Añadir Proyecto", icon: "home-outline", screen: "AddProject" }, // Actualizado con icono de casa y pantalla correcta
+    { id: 4, title: "Añadir Proyecto", icon: "home-outline", screen: "AddProject" },
     { id: 5, title: "Agenda", icon: "calendar-outline", screen: "Meeting_date" },
     { id: 6, title: "Agentes", icon: "people-outline", screen: "Employed" },
-    { id: 7, title: "Configuración", icon: "settings-outline", screen: "Settings" }
+    { id: 7, title: "Configuración", icon: "settings-outline", screen: "Settings" },
+    { id: 8, title: "Cerrar sesión", icon: "log-out-outline", screen: "logout" }
   ];
 
   return (
@@ -231,11 +271,23 @@ const Menu = () => {
                 {menuOptions.map((option) => (
                   <TouchableOpacity 
                     key={option.id} 
-                    style={styles.menuItem}
+                    style={[
+                      styles.menuItem,
+                      option.screen === "logout" ? styles.logoutMenuItem : null
+                    ]}
                     onPress={() => handleNavigation(option.screen)}
                   >
-                    <Ionicons name={option.icon} size={24} color="#009245" />
-                    <Text style={styles.menuItemText}>{option.title}</Text>
+                    <Ionicons 
+                      name={option.icon} 
+                      size={24} 
+                      color={option.screen === "logout" ? "#CC0000" : "#009245"} 
+                    />
+                    <Text style={[
+                      styles.menuItemText,
+                      option.screen === "logout" ? styles.logoutText : null
+                    ]}>
+                      {option.title}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -356,6 +408,14 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     color: "#333",
     fontWeight: "500",
+  },
+  logoutMenuItem: {
+    backgroundColor: "#FEE2E2",
+    borderWidth: 1,
+    borderColor: "#FFCDD2",
+  },
+  logoutText: {
+    color: "#CC0000",
   }
 });
 

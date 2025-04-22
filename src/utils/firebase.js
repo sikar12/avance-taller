@@ -1,30 +1,37 @@
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import firebase from "firebase/compat/app";
-import "firebase/compat/firestore";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCTP9EsaDXWdvNoEOb1M0bZsoC0q6IZOaE",
 
-  authDomain: "pruebasloggin-ecf50.firebaseapp.com",
+  apiKey: "AIzaSyByGTbgF_nfYtrXeMD6puacg1TTZUhd4yY",
 
-  projectId: "pruebasloggin-ecf50",
+  authDomain: "tesis-30ec1.firebaseapp.com",
 
-  storageBucket: "pruebasloggin-ecf50.firebasestorage.app",
+  projectId: "tesis-30ec1",
 
-  messagingSenderId: "215402617688",
+  storageBucket: "tesis-30ec1.firebasestorage.app",
 
-  appId: "1:215402617688:web:a3e994d7e561c72f81a32d"
+  messagingSenderId: "901895460291",
+
+  appId: "1:901895460291:web:27595b75a0d848a9b15976",
+
+  measurementId: "G-0XCYBJ2LWV"
+
 
 };
 
+
+
 // Initialize Firebase
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-} else {
-  firebase.app();
-}
+const app = initializeApp(firebaseConfig);
 
-// Inicializa Firestore
-const db = firebase.firestore();
+// Inicializar y exportar servicios de Firebase
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { db };
+export { db, auth };

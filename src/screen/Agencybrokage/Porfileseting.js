@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -20,7 +19,6 @@ import { useNavigation } from "@react-navigation/native";
 import {
   getAuth,
   updateEmail,
-  updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
   signOut,
@@ -29,7 +27,6 @@ import {
   getFirestore,
   doc,
   updateDoc,
-  getDoc,
   collection,
   query,
   where,
@@ -49,8 +46,6 @@ export default function ProfileSetting() {
   const [rut, setRut] = useState("");
   const [correo, setCorreo] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [contrasena, setContrasena] = useState("••••••••"); // Contraseña oculta por defecto
-  const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [camposEditados, setCamposEditados] = useState({});
 
@@ -307,24 +302,9 @@ export default function ProfileSetting() {
       await updateDoc(userDocRef, dataToUpdate);
       Alert.alert("Éxito", "Perfil actualizado correctamente");
       
-      // Si se ingresó una nueva contraseña, actualizarla
-      if (contrasena && contrasena !== "••••••••" && currentPassword) {
-        try {
-          const credential = EmailAuthProvider.credential(
-            user.email,
-            currentPassword
-          );
-          await reauthenticateWithCredential(user, credential);
-          await updatePassword(user, contrasena);
-          Alert.alert("Éxito", "Contraseña actualizada correctamente");
-        } catch (error) {
-          console.error("Error al actualizar contraseña:", error);
-          Alert.alert("Error", "No se pudo actualizar la contraseña");
-        }
-      }
     } catch (error) {
       console.error("Error al actualizar perfil:", error);
-      Alert.alert("Error", "No se pudo actualizar el perfil");
+      Alert.alert("Error", "No se pudo actualizar el perfil: " + error.message);
     } finally {
       setSaving(false);
       setCurrentPassword("");
@@ -478,33 +458,6 @@ export default function ProfileSetting() {
                   keyboardType="phone-pad"
                 />
               </View>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Contraseña</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={styles.passwordInput}
-                    placeholder="Contraseña"
-                    secureTextEntry={!showPassword}
-                    value={contrasena}
-                    onChangeText={(text) => {
-                      setContrasena(text);
-                      setCamposEditados({...camposEditados, contrasena: true});
-                    }}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeButton}
-                  >
-                    <Ionicons
-                      name={showPassword ? "eye" : "eye-off"}
-                      size={24}
-                      color="#000000"
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
 
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.buttonVolver} onPress={volver}>
@@ -596,24 +549,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 15,
     fontSize: 16,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "#CCCCCC",
-    paddingHorizontal: 15,
-    backgroundColor: "#FFFFFF",
-    height: 50,
-  },
-  passwordInput: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-  },
-  eyeButton: {
-    padding: 8,
   },
   buttonContainer: {
     flexDirection: "row",
