@@ -735,6 +735,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#CCCCCC",
     borderRadius: 50,
+    width: "80%",
     paddingHorizontal: wp("4%"),
     height: hp("6%"),
   },

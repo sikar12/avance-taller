@@ -24,6 +24,7 @@ import EditPublication from "./src/screen/Agencybrokage/Editpublication";
 import HomemapsRealstate from "./src/screen/RealState/Homerealstate";
 import AddProject from "./src/screen/RealState/Addproject";
 import Homelogg from "./src/screen/Loggin/Homelogg";
+import FilterForm from "./src/components/FilterForm";
 
 const Stack = createNativeStackNavigator();
 
@@ -64,6 +65,7 @@ export default function App() {
         <Stack.Screen name="EditPublication" component={EditPublication} />
         <Stack.Screen name="AddProject" component={AddProject} />
         <Stack.Screen name="Homelogg"component ={Homelogg} />
+        <Stack.Screen name="FilterForm" component={FilterForm} />
       </Stack.Navigator>
     </NavigationContainer>
   );

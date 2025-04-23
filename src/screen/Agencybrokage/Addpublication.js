@@ -331,7 +331,7 @@ export default function AddPublication() {
         [
           {
             text: "OK",
-            onPress: () => navigation.navigate("MyPublications")
+          
           }
         ]
       );
@@ -372,7 +372,7 @@ export default function AddPublication() {
         >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editar publicación</Text>
+        <Text style={styles.headerTitle}>Crear Publicación</Text>
       </View>
       
       <KeyboardAvoidingView
