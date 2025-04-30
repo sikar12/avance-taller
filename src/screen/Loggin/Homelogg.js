@@ -46,6 +46,16 @@ export default function Homelogg() {
           >
             <Text style={styles.buttonText}>Registrarse</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate("Invited_map")}
+            
+          >
+            <Text style={styles.buttonText} >Iniciar sesión como invitado</Text>
+          </TouchableOpacity>
+
+     
         </View>
       </ImageBackground>
     </SafeAreaView>
@@ -61,12 +71,15 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
+    top: "20%",
+    
   },
   logoContainer: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: hp("10%"),
     marginBottom: hp("5%"),
+    top: hp("-30%"),
   },
   logo: {
     width: wp("70%"),
@@ -77,6 +90,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingBottom: hp("10%"),
+    top: hp("-20%"),
+  
   },
   button: {
     borderRadius: wp("8%"),

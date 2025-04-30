@@ -7,7 +7,6 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
@@ -222,7 +221,7 @@ export default function Signin() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" />
       <ImageBackground
         style={styles.background}
@@ -235,89 +234,84 @@ export default function Signin() {
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={Platform.OS === "ios" ? 0 : hp("5%")}
           >
-            <ScrollView
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.logoContainer}>
-                <Image
-                  style={styles.logo}
-                  source={require("../../../assets/images/INMOBINDER-03.png")}
-                  resizeMode="contain"
+            <View style={styles.logoContainer}>
+              <Image
+                style={styles.logo}
+                source={require("../../../assets/images/INMOBINDER-03.png")}
+                resizeMode="contain"
+              />
+            </View>
+
+            <View style={styles.formContainer}>
+              <Text style={styles.title}>Iniciar sesión</Text>
+
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={[
+                    styles.inputText,
+                    emailError ? styles.inputError : null,
+                  ]}
+                  placeholder="Ingrese su correo"
+                  value={correo}
+                  onChangeText={handleCorreoChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
+                {emailError ? (
+                  <Text style={styles.errorText}>{emailError}</Text>
+                ) : null}
               </View>
 
-              <View style={styles.formContainer}>
-                <Text style={styles.title}>Iniciar sesión</Text>
-
-                <View style={styles.inputContainer}>
+              <View style={styles.inputContainer}>
+                <View
+                  style={[
+                    styles.passwordContainer,
+                    passwordError ? styles.inputError : null,
+                  ]}
+                >
                   <TextInput
-                    style={[
-                      styles.inputText,
-                      emailError ? styles.inputError : null,
-                    ]}
-                    placeholder="Ingrese su correo"
-                    value={correo}
-                    onChangeText={handleCorreoChange}
-                    keyboardType="email-address"
+                    style={styles.passwordInput}
+                    placeholder="Ingrese su contraseña"
+                    secureTextEntry={!showPassword}
+                    value={contraseña}
+                    onChangeText={handleContraseñaChange}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
-                  {emailError ? (
-                    <Text style={styles.errorText}>{emailError}</Text>
-                  ) : null}
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <View
-                    style={[
-                      styles.passwordContainer,
-                      passwordError ? styles.inputError : null,
-                    ]}
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeButton}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <TextInput
-                      style={styles.passwordInput}
-                      placeholder="Ingrese su contraseña"
-                      secureTextEntry={!showPassword}
-                      value={contraseña}
-                      onChangeText={handleContraseñaChange}
-                      autoCapitalize="none"
-                      autoCorrect={false}
+                    <Icon
+                      name={showPassword ? "eye" : "eye-off"}
+                      size={wp("6%")}
+                      color="#000000"
                     />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeButton}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Icon
-                        name={showPassword ? "eye" : "eye-off"}
-                        size={wp("6%")}
-                        color="#000000"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  {passwordError ? (
-                    <Text style={styles.errorText}>{passwordError}</Text>
-                  ) : null}
+                  </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleLogin}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <Text style={styles.buttonText}>Ingresar</Text>
-                  )}
-                </TouchableOpacity>
+                {passwordError ? (
+                  <Text style={styles.errorText}>{passwordError}</Text>
+                ) : null}
               </View>
-            </ScrollView>
+
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.buttonText}>Ingresar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </ImageBackground>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -325,25 +319,30 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+   
   },
   background: {
     flex: 1,
     width: "100%",
-    height: "100%",
+    height: "150%",
+    top: "20%", // Igualado con Homelogg.js
+    
   },
   container: {
     flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    alignItems: "center",
     justifyContent: "center",
-    paddingVertical: hp("5%"),
+    alignItems: "center",
+    
   },
   logoContainer: {
-    width: "100%",
     alignItems: "center",
-    marginBottom: hp("3%"),
+    justifyContent: "center",
+    position: "center",
+    marginTop: hp("20%"),
+    marginBottom: hp("2%"),
+    top: hp("-29%"), // Igualado con Homelogg.js
+    
+    
   },
   logo: {
     width: wp("70%"),
@@ -360,16 +359,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    marginTop: hp("2%"),
+    top: hp("-25%"), // Posicionado similar al contenedor de botones en Homelogg.js
   },
   title: {
     fontSize: wp("7%"),
     fontWeight: "bold",
     color: "#25272B",
     marginBottom: hp("3%"),
+    
   },
   inputContainer: {
     width: "100%",
     marginBottom: hp("1.5%"),
+  
   },
   inputText: {
     height: hp("6%"),
@@ -379,6 +382,7 @@ const styles = StyleSheet.create({
     borderColor: "#CCCCCC",
     backgroundColor: "#FFFFFF",
     paddingHorizontal: wp("4%"),
+    
   },
   inputError: {
     borderColor: "red",
@@ -399,6 +403,7 @@ const styles = StyleSheet.create({
     borderColor: "#CCCCCC",
     paddingHorizontal: wp("4%"),
     backgroundColor: "#FFFFFF",
+    
   },
   passwordInput: {
     flex: 1,

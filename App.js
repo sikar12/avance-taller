@@ -25,6 +25,7 @@ import HomemapsRealstate from "./src/screen/RealState/Homerealstate";
 import AddProject from "./src/screen/RealState/Addproject";
 import Homelogg from "./src/screen/Loggin/Homelogg";
 import FilterForm from "./src/components/FilterForm";
+import Invited_map from "./src/screen/Sesion_for_invited/Invited_map";
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +67,7 @@ export default function App() {
         <Stack.Screen name="AddProject" component={AddProject} />
         <Stack.Screen name="Homelogg"component ={Homelogg} />
         <Stack.Screen name="FilterForm" component={FilterForm} />
+        <Stack.Screen name="Invited_map" component={Invited_map} />
       </Stack.Navigator>
     </NavigationContainer>
   );
