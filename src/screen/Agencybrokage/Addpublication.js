@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { getAuth } from "firebase/auth";
 import {
   getFirestore,
@@ -42,6 +42,9 @@ import { wp, hp } from "../../utils/ResponsiveUtils";
 
 export default function AddPublication() {
   const navigation = useNavigation();
+  const route = useRoute(); // Añadido para acceder a los parámetros
+  const source = route.params?.source || "agencybrokage"; // Identificar el origen
+  
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -299,7 +302,7 @@ export default function AddPublication() {
       
       const db = getFirestore();
       
-      // Datos de la publicación
+      // Datos de la publicación con source añadido
       const publicacionData = {
         tipoPropiedad,
         operacion,
@@ -310,6 +313,7 @@ export default function AddPublication() {
         precioMax: precioMax ? Number(precioMax) : 0,
         imagenUrl: imageUrl,
         userId: user.uid,
+        source: source, // CAMBIO: Añadir source para diferenciar el origen
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -331,7 +335,14 @@ export default function AddPublication() {
         [
           {
             text: "OK",
-          
+            // CAMBIO: Navegación diferente según el origen
+            onPress: () => {
+              if (source === "realstate") {
+                navigation.navigate("HomeRealstate"); // Navegar a la pantalla principal de RealState
+              } else {
+                navigation.goBack(); // Comportamiento original para AgencyBrokage
+              }
+            }
           }
         ]
       );

@@ -108,18 +108,20 @@ export default function ListProject() {
 
   const loadPublications = async (db, uid) => {
     try {
-      // Solución temporal sin orderBy para evitar el error de índice
+      // CAMBIO: Consulta modificada para filtrar por userId y source
       const publicationsQuery = query(
         collection(db, "publicaciones"),
-        where("userId", "==", uid)
+        where("userId", "==", uid),
+        where("source", "==", "realstate") // Filtrar por source
       );
       
+      console.log("Ejecutando consulta para publicaciones de realstate");
       const snapshot = await getDocs(publicationsQuery);
       
       const publicationsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-        itemType: "publication", // Añadir identificador de tipo
+        itemType: "publication",
         createdAt: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000) : new Date(),
       }));
       
@@ -131,7 +133,7 @@ export default function ListProject() {
       
     } catch (error) {
       console.error("Error al cargar publicaciones:", error);
-      Alert.alert("Error", "No se pudieron cargar las publicaciones: " + error.message);
+      throw error;
     }
   };
 
@@ -349,7 +351,7 @@ export default function ListProject() {
       </Text>
       <TouchableOpacity 
         style={styles.addButton}
-        onPress={() => navigation.navigate(activeTab === "projects" ? "AddProject" : "AddPublication")}
+        onPress={() => navigation.navigate(activeTab === "projects" ? "AddProject" : "AddPublication", { source: "realstate" })}
       >
         <Text style={styles.addButtonText}>
           {activeTab === "projects" ? "Crear nuevo proyecto" : "Crear nueva publicación"}
@@ -497,7 +499,7 @@ export default function ListProject() {
         <Text style={styles.headerTitle}>Mis Proyectos y Publicaciones</Text>
         <TouchableOpacity 
           style={styles.addItemButton}
-          onPress={() => navigation.navigate(activeTab === "projects" ? "AddProject" : "AddPublication")}
+          onPress={() => navigation.navigate(activeTab === "projects" ? "AddProject" : "AddPublication", { source: "realstate" })}
         >
           <Ionicons name="add" size={24} color="#009245" />
         </TouchableOpacity>

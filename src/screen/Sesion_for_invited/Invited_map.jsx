@@ -22,6 +22,8 @@ import { useNavigation } from "@react-navigation/native";
 
 // Importamos el componente FilterForm
 import FilterForm from "../../components/FilterForm";
+// Importamos el componente PropertyDetailModal
+import PropertyDetailModal from "../../components/PropertyDetailModal";
 
 // Importaciones de Firebase
 import {
@@ -57,6 +59,11 @@ export default function Invited_map() {
   const [visiblePublications, setVisiblePublications] = useState([]);
   const [visibleProjects, setVisibleProjects] = useState([]);
   const [maxDistance, setMaxDistance] = useState(10); // Distancia máxima en km para mostrar marcadores
+  
+  // Estados para el modal de detalles
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [propertyType, setPropertyType] = useState(null); // 'publication' o 'project'
+  const [modalVisible, setModalVisible] = useState(false);
   
   const mapRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -395,6 +402,13 @@ export default function Invited_map() {
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       });
+      
+      // Si el item tiene itemType, lo usamos para mostrar el modal
+      if (item.itemType) {
+        setSelectedProperty(item);
+        setPropertyType(item.itemType);
+        setModalVisible(true);
+      }
     }
   };
 
@@ -404,6 +418,20 @@ export default function Invited_map() {
     if (!min) return `$${max.toLocaleString()} CLP`;
     if (!max) return `$${min.toLocaleString()} CLP`;
     return `$${min.toLocaleString()} CLP`;
+  };
+  
+  // Nueva función para manejar el clic en un marcador de publicación
+  const handlePublicationPress = (publication) => {
+    setSelectedProperty(publication);
+    setPropertyType('publication');
+    setModalVisible(true);
+  };
+  
+  // Nueva función para manejar el clic en un marcador de proyecto
+  const handleProjectPress = (project) => {
+    setSelectedProperty(project);
+    setPropertyType('project');
+    setModalVisible(true);
   };
 
   // Renderizar cada elemento de la lista de resultados
@@ -521,6 +549,17 @@ export default function Invited_map() {
     navigation.navigate("Homelogg");
   };
 
+  // Función para cerrar el modal de detalles
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedProperty(null);
+  };
+
+  // Función para manejar el toque en el mapa (cerrar otros elementos UI)
+  const handleMapPress = () => {
+    dismissKeyboard();
+  };
+
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View style={styles.container}>
@@ -543,7 +582,7 @@ export default function Invited_map() {
             }}
             showsUserLocation={true}
             showsMyLocationButton={false}
-            onPress={dismissKeyboard}
+            onPress={handleMapPress}
             onRegionChangeComplete={handleRegionChange}
           >
             {/* Renderizar marcadores para cada publicación (solo si son visibles) */}
@@ -557,24 +596,8 @@ export default function Invited_map() {
                 title={publication.tipoPropiedad}
                 description={publication.direccion}
                 pinColor={publication.operacion === "Venta" ? "#FF3B30" : "green"}
-              >
-                <Callout tooltip>
-                  <View style={styles.calloutContainer}>
-                    <Text style={styles.calloutTitle}>
-                      {publication.tipoPropiedad} en {publication.operacion}
-                    </Text>
-                    <Text style={styles.calloutPrice}>
-                      {formatPrice(publication.precioMin, publication.precioMax)}
-                    </Text>
-                    <Text style={styles.calloutAddress}>
-                      {publication.direccion}
-                    </Text>
-                    <Text style={styles.calloutDescription} numberOfLines={2}>
-                      {publication.descripcion}
-                    </Text>
-                  </View>
-                </Callout>
-              </Marker>
+                onPress={() => handlePublicationPress(publication)}
+              />
             ))}
             
             {/* Renderizar marcadores para cada proyecto (solo si son visibles) */}
@@ -588,29 +611,11 @@ export default function Invited_map() {
                 title={project.nombreProyecto || "Proyecto"}
                 description={project.direccion}
                 pinColor="#009245" // Color diferente para proyectos
+                onPress={() => handleProjectPress(project)}
               >
                 <View style={styles.projectMarker}>
                   <Ionicons name="business" size={20} color="white" />
                 </View>
-                <Callout tooltip>
-                  <View style={styles.calloutContainer}>
-                    <Text style={styles.calloutProjectTitle}>
-                      {project.nombreProyecto || "Proyecto"}
-                    </Text>
-                    <Text style={styles.calloutProjectType}>
-                      {project.tipoProyecto}
-                    </Text>
-                    <Text style={styles.calloutPrice}>
-                      {project.precioDesde ? `Desde ${formatPrice(project.precioDesde, 0)}` : "Consultar precio"}
-                    </Text>
-                    <Text style={styles.calloutAddress}>
-                      {project.direccion}
-                    </Text>
-                    <Text style={styles.calloutDescription} numberOfLines={2}>
-                      {project.descripcion}
-                    </Text>
-                  </View>
-                </Callout>
               </Marker>
             ))}
           </MapView>
@@ -727,6 +732,14 @@ export default function Invited_map() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Modal de Detalles de Propiedad */}
+        <PropertyDetailModal
+          visible={modalVisible}
+          onClose={closeModal}
+          property={selectedProperty}
+          type={propertyType}
+        />
       </View>
     </TouchableWithoutFeedback>
   );

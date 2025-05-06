@@ -205,7 +205,8 @@ const Menu = () => {
     } else if (screenName === "ListProject") {
       navigation.navigate("ListProject");
     } else if (screenName === "AddPublication") {
-      navigation.navigate("AddPublication");
+      // CAMBIO: Añadir parámetro source para indicar el origen
+      navigation.navigate("AddPublication", { source: "realstate" });
     } else if (screenName === "AddProject") {
       navigation.navigate("AddProject");
     } else if (screenName === "Meeting_date") {

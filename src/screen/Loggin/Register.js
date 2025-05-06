@@ -25,7 +25,7 @@ const Register = () => {
         source={require("../../../assets/images/Group.png")}
         resizeMode="cover"
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        
           <View style={styles.logoContainer}>
             <Image
               style={styles.logo}
@@ -38,24 +38,10 @@ const Register = () => {
             <Text style={styles.title}>Registrarse como</Text>
 
             <TouchableOpacity 
-              style={styles.button}
-              onPress={() => navigation.navigate("Form_np")}
-            >
-              <Text style={styles.buttonText}>Persona natural</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
               style={styles.button} 
               onPress={() => navigation.navigate("Inmo")}
             >
               <Text style={styles.buttonText}>Inmobiliaria</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.button} 
-              onPress={() => navigation.navigate("Co")}
-            >
-              <Text style={styles.buttonText}>Corredor</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -72,7 +58,7 @@ const Register = () => {
               </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
+        
       </ImageBackground>
     </SafeAreaView>
   );
@@ -86,7 +72,9 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     width: "100%",
-    height: "100%",
+    height: "150%",
+    top: hp("10%"),
+    
   },
   scrollContent: {
     flexGrow: 1,
@@ -97,10 +85,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: hp("2%"),
     marginBottom: hp("2%"),
+    
   },
   logo: {
     width: wp("70%"),
     height: hp("25%"),
+    top: hp("-5%"),
+   
   },
   container: {
     width: wp("85%"),
@@ -109,6 +100,9 @@ const styles = StyleSheet.create({
     padding: wp("5%"),
     alignItems: "center",
     marginBottom: hp("5%"),
+    top: hp("10%"),
+    left: wp("7%"),
+    
   },
   title: {
     fontSize: wp("6%"),

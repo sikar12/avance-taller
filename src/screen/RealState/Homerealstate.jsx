@@ -30,6 +30,8 @@ import {
   query,
   getDocs,
   where,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 
 export default function HomemapsRealstate() {
@@ -67,28 +69,43 @@ export default function HomemapsRealstate() {
     }
 
     const searchTerms = searchText.toLowerCase().trim();
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
     
-    // Filtrar publicaciones (solo si están visibles según los filtros)
+    if (!currentUser) {
+      console.log("No hay usuario autenticado para filtrar búsqueda");
+      setFilteredItems([]);
+      return;
+    }
+    
+    const userId = currentUser.uid;
+    
+    // Filtrar publicaciones (solo si están visibles según los filtros y son del usuario actual)
     const filteredPublications = activeFilters.mostrarPublicaciones 
       ? publications.filter(pub => 
-          (pub.direccion && pub.direccion.toLowerCase().includes(searchTerms)) ||
-          (pub.tipoPropiedad && pub.tipoPropiedad.toLowerCase().includes(searchTerms)) ||
-          (pub.descripcion && pub.descripcion.toLowerCase().includes(searchTerms))
+          pub.userId === userId && (
+            (pub.direccion && pub.direccion.toLowerCase().includes(searchTerms)) ||
+            (pub.tipoPropiedad && pub.tipoPropiedad.toLowerCase().includes(searchTerms)) ||
+            (pub.descripcion && pub.descripcion.toLowerCase().includes(searchTerms))
+          )
         ).map(pub => ({...pub, itemType: 'publication'}))
       : [];
     
-    // Filtrar proyectos (solo si están visibles según los filtros)
+    // Filtrar proyectos (solo si están visibles según los filtros y son del usuario actual)
     const filteredProjects = activeFilters.mostrarProyectos
       ? projects.filter(proj => 
-          (proj.direccion && proj.direccion.toLowerCase().includes(searchTerms)) ||
-          (proj.tipoProyecto && proj.tipoProyecto.toLowerCase().includes(searchTerms)) ||
-          (proj.nombreProyecto && proj.nombreProyecto.toLowerCase().includes(searchTerms)) ||
-          (proj.descripcion && proj.descripcion.toLowerCase().includes(searchTerms))
+          proj.userId === userId && (
+            (proj.direccion && proj.direccion.toLowerCase().includes(searchTerms)) ||
+            (proj.tipoProyecto && proj.tipoProyecto.toLowerCase().includes(searchTerms)) ||
+            (proj.nombreProyecto && proj.nombreProyecto.toLowerCase().includes(searchTerms)) ||
+            (proj.descripcion && proj.descripcion.toLowerCase().includes(searchTerms))
+          )
         ).map(proj => ({...proj, itemType: 'project'}))
       : [];
     
     // Combinar resultados
     setFilteredItems([...filteredPublications, ...filteredProjects]);
+    console.log(`Resultados de búsqueda para ${userId}: ${filteredPublications.length} publicaciones, ${filteredProjects.length} proyectos`);
   }, [searchText, publications, projects, activeFilters]);
 
   // Función para aplicar los filtros
@@ -96,9 +113,19 @@ export default function HomemapsRealstate() {
     setActiveFilters(filters);
     console.log("Filtros aplicados:", filters);
     
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      console.log("No hay usuario autenticado para aplicar filtros");
+      return;
+    }
+    
+    const userId = currentUser.uid;
+    
     // Empezamos desde las colecciones completas
-    let filteredPublications = [...allPublications];
-    let filteredProjects = [...allProjects];
+    let filteredPublications = [...allPublications].filter(pub => pub.userId === userId);
+    let filteredProjects = [...allProjects].filter(proj => proj.userId === userId);
     
     // Visibilidad de publicaciones
     if (!filters.mostrarPublicaciones) {
@@ -198,7 +225,8 @@ export default function HomemapsRealstate() {
     
     // Mostrar notificación de filtros aplicados si hay una diferencia
     let countFiltered = filteredPublications.length + filteredProjects.length;
-    let countTotal = allPublications.length + allProjects.length;
+    let countTotal = allPublications.filter(pub => pub.userId === userId).length + 
+                     allProjects.filter(proj => proj.userId === userId).length;
     
     if (countFiltered < countTotal) {
       Alert.alert(
@@ -265,6 +293,15 @@ export default function HomemapsRealstate() {
     setShowSearchResults(false);
   };
 
+  // Función centralizada para manejar errores
+  const handleError = (error, customMessage) => {
+    console.error(`${customMessage}:`, error);
+    Alert.alert(
+      "Error", 
+      `${customMessage}. ${error.message}`
+    );
+  };
+
   const loadUserData = async () => {
     try {
       setLoading(true);
@@ -279,18 +316,14 @@ export default function HomemapsRealstate() {
         return;
       }
       
-      // Cargar publicaciones
+      // Cargar publicaciones del usuario actual
       await loadPublications(db, currentUser.uid);
       
-      // Cargar proyectos
+      // Cargar proyectos del usuario actual
       await loadProjects(db, currentUser.uid);
       
     } catch (error) {
-      console.error("Error al cargar datos:", error);
-      Alert.alert(
-        "Error de conexión", 
-        "No se pudieron cargar tus propiedades. Comprueba tu conexión a internet e inténtalo de nuevo."
-      );
+      handleError(error, "Error al cargar datos");
     } finally {
       setLoading(false);
     }
@@ -298,7 +331,7 @@ export default function HomemapsRealstate() {
 
   const loadPublications = async (db, userId) => {
     try {
-      // Consultar las publicaciones del usuario actual
+      // Consultar SOLO las publicaciones del usuario actual
       const publicationsQuery = query(
         collection(db, "publicaciones"),
         where("userId", "==", userId)
@@ -309,27 +342,31 @@ export default function HomemapsRealstate() {
       
       console.log(`Documentos de publicaciones encontrados: ${snapshot.docs.length}`);
       
-      // Filtrar solo las publicaciones que tienen ubicación
+      // Filtrar solo las publicaciones que tienen ubicación Y pertenecen al usuario actual
       const publicationsData = snapshot.docs
         .map(doc => ({
           id: doc.id,
           ...doc.data(),
         }))
-        .filter(pub => pub.ubicacion && pub.ubicacion.latitude && pub.ubicacion.longitude);
+        .filter(pub => 
+          pub.ubicacion && 
+          pub.ubicacion.latitude && 
+          pub.ubicacion.longitude && 
+          pub.userId === userId // Verificación adicional de userId
+        );
       
       setAllPublications(publicationsData);  // Guardar todas las publicaciones
       setPublications(publicationsData);     // Establecer las publicaciones filtradas (inicialmente todas)
-      console.log(`Publicaciones con ubicación: ${publicationsData.length}`);
+      console.log(`Publicaciones con ubicación del usuario ${userId}: ${publicationsData.length}`);
       
     } catch (error) {
-      console.error("Error al cargar publicaciones:", error);
-      throw error; // Propagar error para manejo centralizado
+      handleError(error, "Error al cargar publicaciones");
     }
   };
 
   const loadProjects = async (db, userId) => {
     try {
-      // Consultar los proyectos del usuario actual
+      // Consultar SOLO los proyectos del usuario actual
       const projectsQuery = query(
         collection(db, "proyectos"),
         where("userId", "==", userId)
@@ -340,21 +377,25 @@ export default function HomemapsRealstate() {
       
       console.log(`Documentos de proyectos encontrados: ${snapshot.docs.length}`);
       
-      // Filtrar solo los proyectos que tienen ubicación
+      // Filtrar solo los proyectos que tienen ubicación Y pertenecen al usuario actual
       const projectsData = snapshot.docs
         .map(doc => ({
           id: doc.id,
           ...doc.data(),
         }))
-        .filter(proj => proj.ubicacion && proj.ubicacion.latitude && proj.ubicacion.longitude);
+        .filter(proj => 
+          proj.ubicacion && 
+          proj.ubicacion.latitude && 
+          proj.ubicacion.longitude && 
+          proj.userId === userId // Verificación adicional de userId
+        );
       
       setAllProjects(projectsData);  // Guardar todos los proyectos
       setProjects(projectsData);     // Establecer los proyectos filtrados (inicialmente todos)
-      console.log(`Proyectos con ubicación: ${projectsData.length}`);
+      console.log(`Proyectos con ubicación del usuario ${userId}: ${projectsData.length}`);
       
     } catch (error) {
-      console.error("Error al cargar proyectos:", error);
-      throw error; // Propagar error para manejo centralizado
+      handleError(error, "Error al cargar proyectos");
     }
   };
 
@@ -464,72 +505,92 @@ export default function HomemapsRealstate() {
             onPress={dismissKeyboard}
           >
             {/* Renderizar marcadores para cada publicación (solo si son visibles) */}
-            {activeFilters.mostrarPublicaciones && publications.map((publication) => (
-              <Marker
-                key={`publication-${publication.id}`}
-                coordinate={{
-                  latitude: publication.ubicacion.latitude,
-                  longitude: publication.ubicacion.longitude,
-                }}
-                title={publication.tipoPropiedad}
-                description={publication.direccion}
-                pinColor={publication.operacion === "Venta" ? "#FF3B30" : "green"}
-              >
-                <Callout tooltip>
-                  <View style={styles.calloutContainer}>
-                    <Text style={styles.calloutTitle}>
-                      {publication.tipoPropiedad} en {publication.operacion}
-                    </Text>
-                    <Text style={styles.calloutPrice}>
-                      {formatPrice(publication.precioMin, publication.precioMax)}
-                    </Text>
-                    <Text style={styles.calloutAddress}>
-                      {publication.direccion}
-                    </Text>
-                    <Text style={styles.calloutDescription} numberOfLines={2}>
-                      {publication.descripcion}
-                    </Text>
-                  </View>
-                </Callout>
-              </Marker>
-            ))}
+            {activeFilters.mostrarPublicaciones && publications.map((publication) => {
+              // Verificar que la publicación pertenezca al usuario actual
+              const auth = getAuth();
+              const currentUser = auth.currentUser;
+              
+              if (!currentUser || publication.userId !== currentUser.uid) {
+                return null;
+              }
+              
+              return (
+                <Marker
+                  key={`publication-${publication.id}`}
+                  coordinate={{
+                    latitude: publication.ubicacion.latitude,
+                    longitude: publication.ubicacion.longitude,
+                  }}
+                  title={publication.tipoPropiedad}
+                  description={publication.direccion}
+                  pinColor={publication.operacion === "Venta" ? "#FF3B30" : "green"}
+                >
+                  <Callout tooltip>
+                    <View style={styles.calloutContainer}>
+                      <Text style={styles.calloutTitle}>
+                        {publication.tipoPropiedad} en {publication.operacion}
+                      </Text>
+                      <Text style={styles.calloutPrice}>
+                        {formatPrice(publication.precioMin, publication.precioMax)}
+                      </Text>
+                      <Text style={styles.calloutAddress}>
+                        {publication.direccion}
+                      </Text>
+                      <Text style={styles.calloutDescription} numberOfLines={2}>
+                        {publication.descripcion}
+                      </Text>
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
             
             {/* Renderizar marcadores para cada proyecto (solo si son visibles) */}
-            {activeFilters.mostrarProyectos && projects.map((project) => (
-              <Marker
-                key={`project-${project.id}`}
-                coordinate={{
-                  latitude: project.ubicacion.latitude,
-                  longitude: project.ubicacion.longitude,
-                }}
-                title={project.nombreProyecto || "Proyecto"}
-                description={project.direccion}
-                pinColor="#009245" // Color diferente para proyectos
-              >
-                <View style={styles.projectMarker}>
-                  <Ionicons name="business" size={20} color="white" />
-                </View>
-                <Callout tooltip>
-                  <View style={styles.calloutContainer}>
-                    <Text style={styles.calloutProjectTitle}>
-                      {project.nombreProyecto || "Proyecto"}
-                    </Text>
-                    <Text style={styles.calloutProjectType}>
-                      {project.tipoProyecto}
-                    </Text>
-                    <Text style={styles.calloutPrice}>
-                      {project.precioDesde ? `Desde ${formatPrice(project.precioDesde, 0)}` : "Consultar precio"}
-                    </Text>
-                    <Text style={styles.calloutAddress}>
-                      {project.direccion}
-                    </Text>
-                    <Text style={styles.calloutDescription} numberOfLines={2}>
-                      {project.descripcion}
-                    </Text>
+            {activeFilters.mostrarProyectos && projects.map((project) => {
+              // Verificar que el proyecto pertenezca al usuario actual
+              const auth = getAuth();
+              const currentUser = auth.currentUser;
+              
+              if (!currentUser || project.userId !== currentUser.uid) {
+                return null;
+              }
+              
+              return (
+                <Marker
+                  key={`project-${project.id}`}
+                  coordinate={{
+                    latitude: project.ubicacion.latitude,
+                    longitude: project.ubicacion.longitude,
+                  }}
+                  title={project.nombreProyecto || "Proyecto"}
+                  description={project.direccion}
+                  pinColor="#009245" // Color diferente para proyectos
+                >
+                  <View style={styles.projectMarker}>
+                    <Ionicons name="business" size={20} color="white" />
                   </View>
-                </Callout>
-              </Marker>
-            ))}
+                  <Callout tooltip>
+                    <View style={styles.calloutContainer}>
+                      <Text style={styles.calloutProjectTitle}>
+                        {project.nombreProyecto || "Proyecto"}
+                      </Text>
+                      <Text style={styles.calloutProjectType}>
+                        {project.tipoProyecto}
+                      </Text>
+                      <Text style={styles.calloutPrice}>
+                        {project.precioDesde ? `Desde ${formatPrice(project.precioDesde, 0)}` : "Consultar precio"}
+                      </Text>
+                      <Text style={styles.calloutAddress}>
+                        {project.direccion}
+                      </Text>
+                      <Text style={styles.calloutDescription} numberOfLines={2}>
+                        {project.descripcion}
+                      </Text>
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
           </MapView>
         )}
 

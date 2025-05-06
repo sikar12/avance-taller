@@ -1,120 +1,4 @@
-// Función para cargar publicaciones con ID específico
-const loadPublicationsWithSpecificId = async () => {
-    try {
-      setLoading(true);
-      
-      const db = getFirestore();
-      const specificId = "h0KWI0UaQwQf2HLhkom8AABRUzr1"; // ID visto en Firestore
-      
-      // Consulta con el ID específico
-      const specificQuery = query(
-        collection(db, "publicaciones"),
-        where("userId", "==", specificId),
-        orderBy("createdAt", "desc")
-      );
-      
-      console.log("Ejecutando consulta con ID específico:", specificId);
-      const snapshot = await getDocs(specificQuery);
-      
-      console.log(`Documentos encontrados: ${snapshot.docs.length}`);
-      
-      const publicationsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000) : new Date(),
-      }));
-      
-      setPublications(publicationsData);
-      console.log(`Publicaciones cargadas con ID específico: ${publicationsData.length}`);
-      
-      if (publicationsData.length > 0) {
-        Alert.alert("Éxito", "Se cargaron publicaciones con el ID específico");
-      } else {
-        Alert.alert("Aviso", "No se encontraron publicaciones con el ID específico");
-      }
-      
-    } catch (error) {
-      console.error("Error al cargar publicaciones con ID específico:", error);
-      Alert.alert("Error", "No se pudieron cargar las publicaciones: " + error.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };  const createTestPublication = async () => {
-    try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      
-      if (!user) {
-        Alert.alert("Error", "No hay usuario autenticado");
-        return;
-      }
-      
-      const db = getFirestore();
-      
-      // Datos de prueba
-      const testData = {
-        tipoPropiedad: "Casa",
-        operacion: "Venta",
-        estado: "Nuevo",
-        direccion: "Dirección de prueba",
-        descripcion: "Esta es una publicación de prueba creada automáticamente.",
-        precioMin: 100000000,
-        precioMax: 0,
-        imagenUrl: null,
-        userId: user.uid,
-        createdAt: serverTimestamp()
-      };
-      
-      console.log("Creando publicación de prueba con userId:", user.uid);
-      
-      // Agregar a Firestore
-      const docRef = await addDoc(collection(db, "publicaciones"), testData);
-      console.log("Publicación de prueba creada con ID:", docRef.id);
-      
-      // Recargar publicaciones
-      loadPublications();
-      
-      Alert.alert("Éxito", "Publicación de prueba creada correctamente");
-    } catch (error) {
-      console.error("Error al crear publicación de prueba:", error);
-      Alert.alert("Error", "No se pudo crear la publicación de prueba: " + error.message);
-    }
-  };
-
-  // Agregar función para probar una consulta sin filtros
-  const testQuery = async () => {
-    try {
-      const db = getFirestore();
-      
-      // Consulta simple sin filtros para ver si hay datos
-      const simpleQuery = query(
-        collection(db, "publicaciones")
-      );
-      
-      console.log("Ejecutando consulta sin filtros");
-      const snapshot = await getDocs(simpleQuery);
-      
-      console.log(`Total de documentos en la colección: ${snapshot.docs.length}`);
-      
-      if (snapshot.docs.length > 0) {
-        console.log("Ejemplo del primer documento:");
-        console.log(snapshot.docs[0].data());
-        
-        // Consulta con el ID específico que vimos en Firestore
-        console.log("\nProbando consulta con ID específico:");
-        const specificQuery = query(
-          collection(db, "publicaciones"),
-          where("userId", "==", "h0KWI0UaQwQf2HLhkom8AABRUzr1")
-        );
-        
-        const specificSnapshot = await getDocs(specificQuery);
-        console.log(`Documentos encontrados con ID específico: ${specificSnapshot.docs.length}`);
-      }
-    } catch (error) {
-      console.error("Error en consulta de prueba:", error);
-    }
-  };import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -175,12 +59,14 @@ export default function MyPublications() {
       
       const db = getFirestore();
       
-      // Solución simplificada: consultar todas las publicaciones sin filtrar por userId
+      // CAMBIO: Consulta modificada para filtrar por userId y source
       const publicationsQuery = query(
-        collection(db, "publicaciones")
+        collection(db, "publicaciones"),
+        where("userId", "==", user.uid),
+        where("source", "==", "agencybrokage") // Filtrar por source
       );
       
-      console.log("Ejecutando consulta para todas las publicaciones");
+      console.log("Ejecutando consulta para publicaciones de agencybrokage");
       const snapshot = await getDocs(publicationsQuery);
       
       console.log(`Documentos encontrados: ${snapshot.docs.length}`);
