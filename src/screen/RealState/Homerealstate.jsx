@@ -22,6 +22,7 @@ import { Ionicons } from "@expo/vector-icons";
 import MenuButton from "./Menu"; // Importamos el componente FilterForm
 import FilterForm from "../../components/FilterForm";// Importamos el componente FilterForm
 
+
 // Importaciones de Firebase
 import { getAuth } from "firebase/auth";
 import {

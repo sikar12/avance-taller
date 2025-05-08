@@ -15,7 +15,8 @@ import {
   StatusBar,
   ActivityIndicator,
   Modal,
-  Dimensions
+  Dimensions,
+  FlatList
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -42,13 +43,15 @@ import { wp, hp } from "../../utils/ResponsiveUtils";
 
 export default function AddPublication() {
   const navigation = useNavigation();
-  const route = useRoute(); // Añadido para acceder a los parámetros
+  const route = useRoute();
   const source = route.params?.source || "agencybrokage"; // Identificar el origen
   
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // Nuevo estado para el progreso de carga
   const [userData, setUserData] = useState(null);
+  const [searching, setSearching] = useState(false); // Nuevo estado para controlar la búsqueda de dirección
   
   // Estado para los campos del formulario
   const [tipoPropiedad, setTipoPropiedad] = useState("Casa");
@@ -59,6 +62,12 @@ export default function AddPublication() {
   const [precioMin, setPrecioMin] = useState("");
   const [precioMax, setPrecioMax] = useState("");
   
+  // Nuevos estados para baños, habitaciones y tipo de cocina
+  const [cantidadBanos, setCantidadBanos] = useState(1);
+  const [cantidadHabitaciones, setCantidadHabitaciones] = useState(1);
+  const [cantidadPisos, setCantidadPisos] = useState(1);
+  const [tipoCocina, setTipoCocina] = useState("Americana"); // Valores posibles: Americana, Integrada, Cerrada
+  
   // Estados para el mapa
   const [mapVisible, setMapVisible] = useState(false);
   const [location, setLocation] = useState(null);
@@ -66,10 +75,12 @@ export default function AddPublication() {
   const mapRef = useRef(null);
   
   useEffect(() => {
-    // Comprobar permisos de la cámara/galería
-    (async () => {
+    let isMounted = true; // Para evitar actualizar estado si el componente se desmonta
+    
+    const initialize = async () => {
+      // Comprobar permisos de la cámara/galería
       const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (mediaStatus !== "granted") {
+      if (mediaStatus !== "granted" && isMounted) {
         Alert.alert(
           "Permisos insuficientes",
           "Necesitamos permisos para acceder a tu galería de fotos."
@@ -78,44 +89,122 @@ export default function AddPublication() {
       
       // Solicitar permisos de ubicación
       const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
-      if (locationStatus === "granted") {
+      if (locationStatus === "granted" && isMounted) {
         try {
           const location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Highest,
+            accuracy: Location.Accuracy.Balanced, // Cambiado de Highest a Balanced para mejor rendimiento
           });
-          setCurrentLocation({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005
-          });
+          
+          if (isMounted) {
+            setCurrentLocation({
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.005,
+              longitudeDelta: 0.005
+            });
+          }
         } catch (error) {
           console.error("Error al obtener ubicación:", error);
-          // Ubicación por defecto (centrada en Santiago de Chile)
+          // Ubicación por defecto (centrada en Concepción, Chile en lugar de Santiago)
+          if (isMounted) {
+            setCurrentLocation({
+              latitude: -36.8270679, // Coordenadas de Concepción, Chile
+              longitude: -73.0501689,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05
+            });
+          }
+        }
+      } else {
+        // Ubicación por defecto si no hay permisos
+        if (isMounted) {
           setCurrentLocation({
-            latitude: -33.447487,
-            longitude: -70.673676,
+            latitude: -36.8270679, // Concepción, Chile
+            longitude: -73.0501689,
             latitudeDelta: 0.05,
             longitudeDelta: 0.05
           });
         }
-      } else {
-        // Ubicación por defecto si no hay permisos
-        setCurrentLocation({
-          latitude: -33.447487,
-          longitude: -70.673676,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05
-        });
+        
+        // Mostrar mensaje para explicar por qué es importante la ubicación
+        if (isMounted && locationStatus !== "granted") {
+          Alert.alert(
+            "Permisos de ubicación",
+            "Sin permisos de ubicación, no podrás ver tu posición actual en el mapa. Aún podrás seleccionar ubicaciones manualmente.",
+            [
+              { text: "Entendido" }
+            ]
+          );
+        }
       }
-    })();
+    };
     
-    // Cargar información del usuario
+    initialize();
     getUserData();
+    
+    // Función de limpieza
+    return () => {
+      isMounted = false;
+    };
   }, []);
+  
+  // Nueva función para buscar dirección
+  const buscarDireccion = async () => {
+    if (!direccion.trim()) {
+      Alert.alert("Error", "Por favor, ingrese una dirección para buscar");
+      return;
+    }
+    
+    try {
+      setSearching(true);
+      
+      // Usar la API de geocodificación de Expo Location
+      const geocodedLocation = await Location.geocodeAsync(direccion);
+      
+      if (geocodedLocation.length > 0) {
+        const { latitude, longitude } = geocodedLocation[0];
+        
+        // Actualizar la ubicación seleccionada
+        const newLocation = { latitude, longitude };
+        setLocation(newLocation);
+        
+        // Abrir automáticamente el mapa
+        setMapVisible(true);
+        
+        // Si el mapa está visible y la referencia existe, centrar en la ubicación
+        setTimeout(() => {
+          if (mapRef.current) {
+            mapRef.current.animateToRegion({
+              latitude,
+              longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01
+            }, 1000); // Animación de 1 segundo
+          }
+        }, 500); // Pequeño retraso para asegurar que el mapa esté completamente cargado
+        
+        // Obtener dirección reversa para mostrar la dirección completa
+        reverseGeocode({ latitude, longitude });
+      } else {
+        Alert.alert(
+          "Ubicación no encontrada", 
+          "No se pudo encontrar la ubicación. Intente con una dirección más específica o seleccione manualmente en el mapa."
+        );
+      }
+    } catch (error) {
+      console.error("Error al geocodificar dirección:", error);
+      Alert.alert(
+        "Error", 
+        "Hubo un problema al buscar la dirección. Intente nuevamente o seleccione la ubicación manualmente."
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
   
   const getUserData = async () => {
     try {
+      setLoading(true);
       const auth = getAuth();
       const user = auth.currentUser;
       
@@ -130,6 +219,7 @@ export default function AddPublication() {
       
       // Buscar en qué colección está el usuario
       const collections = ["users", "inmobiliaria", "corredor", "agenciacorretaje"];
+      let userFound = false;
       
       for (const collectionName of collections) {
         const userQuery = query(
@@ -145,11 +235,19 @@ export default function AddPublication() {
             id: snapshot.docs[0].id,
             collection: collectionName
           });
+          userFound = true;
           break;
         }
       }
+      
+      if (!userFound) {
+        console.warn("No se encontró el usuario en ninguna colección");
+      }
     } catch (error) {
       console.error("Error al obtener datos del usuario:", error);
+      Alert.alert("Error", "No se pudieron cargar los datos del usuario: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -159,7 +257,7 @@ export default function AddPublication() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.8,
+        quality: 0.7, // Reducido para mejor rendimiento
       });
       
       if (!result.canceled) {
@@ -167,7 +265,7 @@ export default function AddPublication() {
       }
     } catch (error) {
       console.error("Error al seleccionar imagen:", error);
-      Alert.alert("Error", "No se pudo seleccionar la imagen");
+      Alert.alert("Error", "No se pudo seleccionar la imagen: " + error.message);
     }
   };
   
@@ -176,6 +274,7 @@ export default function AddPublication() {
     
     try {
       setUploading(true);
+      setUploadProgress(0);
       
       // Convertir URI a Blob
       const response = await fetch(image);
@@ -195,19 +294,22 @@ export default function AddPublication() {
         uploadTask.on(
           "state_changed",
           (snapshot) => {
-            // Progreso de subida (opcional)
+            // Actualizar progreso de subida
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
             console.log(`Upload is ${progress}% complete`);
           },
           (error) => {
             console.error("Error al subir imagen:", error);
             setUploading(false);
+            setUploadProgress(0);
             reject(error);
           },
           async () => {
             // Subida completada
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             setUploading(false);
+            setUploadProgress(0);
             resolve(downloadURL);
           }
         );
@@ -215,6 +317,8 @@ export default function AddPublication() {
     } catch (error) {
       console.error("Error en el proceso de subida:", error);
       setUploading(false);
+      setUploadProgress(0);
+      Alert.alert("Error", "No se pudo subir la imagen: " + error.message);
       return null;
     }
   };
@@ -231,7 +335,7 @@ export default function AddPublication() {
     const { coordinate } = event.nativeEvent;
     setLocation(coordinate);
     
-    // Obtener dirección reversa (opcional)
+    // Obtener dirección reversa
     reverseGeocode(coordinate);
   };
   
@@ -258,37 +362,126 @@ export default function AddPublication() {
     } catch (error) {
       console.error("Error en geocodificación inversa:", error);
       // No cambiar la dirección si hay error, dejar que el usuario la ingrese manualmente
+      Alert.alert(
+        "Error", 
+        "No se pudo obtener la dirección para esta ubicación. Puede ingresarla manualmente."
+      );
     }
   };
   
   const confirmLocation = () => {
     if (!location) {
-      Alert.alert("Advertencia", "Por favor, selecciona una ubicación en el mapa");
+      Alert.alert(
+        "Ubicación no seleccionada", 
+        "Por favor, selecciona una ubicación en el mapa tocando en el punto deseado."
+      );
       return;
     }
     
-    closeMap();
+    Alert.alert(
+      "Ubicación confirmada",
+      "La ubicación ha sido seleccionada correctamente.",
+      [
+        {
+          text: "OK",
+          onPress: closeMap
+        }
+      ]
+    );
+  };
+  
+  // Función mejorada para formatear precios con separador de miles
+  const formatearPrecio = (precio) => {
+    if (!precio) return "";
+    return precio.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+  
+  // Función inversa para quitar el formato al guardar
+  const desformatearPrecio = (precioFormateado) => {
+    if (!precioFormateado) return "";
+    return precioFormateado.replace(/\./g, "");
   };
   
   const guardarPublicacion = async () => {
-    // Validación básica
-    if (!direccion || !descripcion) {
-      Alert.alert("Error", "Por favor, complete al menos la dirección y descripción");
+    // Validación mejorada
+    const camposRequeridos = [
+      { campo: direccion, nombre: "dirección" },
+      { campo: descripcion, nombre: "descripción" }
+    ];
+    
+    const camposFaltantes = camposRequeridos
+      .filter(item => !item.campo.trim())
+      .map(item => item.nombre);
+    
+    if (camposFaltantes.length > 0) {
+      Alert.alert(
+        "Campos requeridos", 
+        `Por favor, complete los siguientes campos: ${camposFaltantes.join(", ")}.`
+      );
+      return;
+    }
+    
+    // Validar valores numéricos para baños y habitaciones
+    if (cantidadBanos < 1 || cantidadBanos > 10) {
+      Alert.alert("Error", "La cantidad de baños debe estar entre 1 y 10");
+      return;
+    }
+    
+    if (cantidadHabitaciones < 1 || cantidadHabitaciones > 20) {
+      Alert.alert("Error", "La cantidad de habitaciones debe estar entre 1 y 20");
+      return;
+    }
+    
+    if (cantidadPisos < 1 || cantidadPisos > 50) {
+      Alert.alert("Error", "La cantidad de pisos debe estar entre 1 y 50");
       return;
     }
     
     // Validar precios si están presentes
-    if (precioMax && precioMin && Number(precioMax) < Number(precioMin)) {
-      Alert.alert("Error", "El precio máximo debe ser mayor que el precio mínimo");
-      return;
+    if (precioMin && precioMax) {
+      const minNumber = Number(desformatearPrecio(precioMin));
+      const maxNumber = Number(desformatearPrecio(precioMax));
+      
+      if (maxNumber < minNumber) {
+        Alert.alert("Error", "El precio máximo debe ser mayor que el precio mínimo");
+        return;
+      }
     }
     
+    // Confirmar si no se ha seleccionado ubicación
+    if (!location) {
+      Alert.alert(
+        "Ubicación no especificada",
+        "No has seleccionado una ubicación en el mapa. ¿Deseas continuar sin especificar ubicación?",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Continuar sin ubicación",
+            onPress: () => procesarGuardado()
+          }
+        ]
+      );
+    } else {
+      procesarGuardado();
+    }
+  };
+  
+  const procesarGuardado = async () => {
     try {
       setLoading(true);
       
       let imageUrl = null;
       if (image) {
         imageUrl = await uploadImage();
+        if (!imageUrl) {
+          Alert.alert(
+            "Advertencia", 
+            "No se pudo subir la imagen, pero puedes continuar con la publicación sin imagen."
+          );
+        }
       }
       
       const auth = getAuth();
@@ -297,10 +490,15 @@ export default function AddPublication() {
       if (!user) {
         Alert.alert("Error", "No hay usuario autenticado");
         setLoading(false);
+        navigation.navigate("Signin");
         return;
       }
       
       const db = getFirestore();
+      
+      // Procesar precios sin formato
+      const precioMinProcessed = precioMin ? Number(desformatearPrecio(precioMin)) : 0;
+      const precioMaxProcessed = precioMax ? Number(desformatearPrecio(precioMax)) : 0;
       
       // Datos de la publicación con source añadido
       const publicacionData = {
@@ -309,11 +507,16 @@ export default function AddPublication() {
         estado,
         direccion,
         descripcion,
-        precioMin: precioMin ? Number(precioMin) : 0,
-        precioMax: precioMax ? Number(precioMax) : 0,
+        precioMin: precioMinProcessed,
+        precioMax: precioMaxProcessed,
+        cantidadBanos,
+        cantidadHabitaciones,
+        cantidadPisos,
+        tipoCocina,
         imagenUrl: imageUrl,
         userId: user.uid,
-        source: source, // CAMBIO: Añadir source para diferenciar el origen
+        userCollection: userData?.collection || "unknown", // Añadido para saber la colección del usuario
+        source: source,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
@@ -335,12 +538,11 @@ export default function AddPublication() {
         [
           {
             text: "OK",
-            // CAMBIO: Navegación diferente según el origen
             onPress: () => {
               if (source === "realstate") {
-                navigation.navigate("HomeRealstate"); // Navegar a la pantalla principal de RealState
+                navigation.navigate("HomeRealstate");
               } else {
-                navigation.goBack(); // Comportamiento original para AgencyBrokage
+                navigation.goBack();
               }
             }
           }
@@ -354,6 +556,7 @@ export default function AddPublication() {
     }
   };
   
+  // Componente para botones de opciones
   const OptionButton = ({ title, selected, onPress }) => (
     <TouchableOpacity
       style={[
@@ -372,6 +575,54 @@ export default function AddPublication() {
       </Text>
     </TouchableOpacity>
   );
+
+  // Componente para selector numérico
+  const NumericSelector = ({ title, value, setValue, minValue = 1, maxValue = 10 }) => {
+    const handleDecrease = () => {
+      if (value > minValue) {
+        setValue(value - 1);
+      }
+    };
+
+    const handleIncrease = () => {
+      if (value < maxValue) {
+        setValue(value + 1);
+      }
+    };
+
+    return (
+      <View style={styles.numericSelectorContainer}>
+        <Text style={styles.numericSelectorTitle}>{title}</Text>
+        <View style={styles.numericSelectorControls}>
+          <TouchableOpacity 
+            style={styles.numericButton}
+            onPress={handleDecrease}
+            disabled={value <= minValue}
+          >
+            <Ionicons 
+              name="remove" 
+              size={24} 
+              color={value <= minValue ? "#CCCCCC" : "#009245"} 
+            />
+          </TouchableOpacity>
+          
+          <Text style={styles.numericValue}>{value}</Text>
+          
+          <TouchableOpacity 
+            style={styles.numericButton}
+            onPress={handleIncrease}
+            disabled={value >= maxValue}
+          >
+            <Ionicons 
+              name="add" 
+              size={24} 
+              color={value >= maxValue ? "#CCCCCC" : "#009245"} 
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -410,6 +661,14 @@ export default function AddPublication() {
                 </View>
               )}
             </TouchableOpacity>
+            
+            {/* Indicador de progreso de carga */}
+            {uploading && (
+              <View style={styles.progressContainer}>
+                <View style={[styles.progressBar, { width: `${uploadProgress}%` }]} />
+                <Text style={styles.progressText}>{Math.round(uploadProgress)}%</Text>
+              </View>
+            )}
             
             {/* Tipo de propiedad */}
             <View style={styles.sectionContainer}>
@@ -467,7 +726,57 @@ export default function AddPublication() {
               </View>
             </View>
             
-            {/* Dirección con mapa */}
+            {/* Cantidad de baños y habitaciones */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Detalles de la propiedad</Text>
+              <View style={styles.detailsContainer}>
+                <NumericSelector
+                  title="Baños"
+                  value={cantidadBanos}
+                  setValue={setCantidadBanos}
+                  minValue={1}
+                  maxValue={10}
+                />
+                <NumericSelector
+                  title="Habitaciones"
+                  value={cantidadHabitaciones}
+                  setValue={setCantidadHabitaciones}
+                  minValue={1}
+                  maxValue={20}
+                />
+                <NumericSelector
+                  title="Pisos"
+                  value={cantidadPisos}
+                  setValue={setCantidadPisos}
+                  minValue={1}
+                  maxValue={50}
+                />
+              </View>
+            </View>
+            
+            {/* Tipo de cocina */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Tipo de cocina</Text>
+              <View style={styles.optionsContainer}>
+                <OptionButton
+                  title="Americana"
+                  selected={tipoCocina === "Americana"}
+                  onPress={() => setTipoCocina("Americana")}
+                />
+                <OptionButton
+                  title="Integrada"
+                  selected={tipoCocina === "Integrada"}
+                  onPress={() => setTipoCocina("Integrada")}
+                />
+                <OptionButton
+                  title="Cerrada"
+                  selected={tipoCocina === "Cerrada"}
+                  onPress={() => setTipoCocina("Cerrada")}
+                />
+              </View>
+            </View>
+            
+            {/* Dirección con mapa y botón de búsqueda */}
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Dirección</Text>
               <View style={styles.locationContainer}>
@@ -480,6 +789,21 @@ export default function AddPublication() {
                     onChangeText={setDireccion}
                   />
                 </View>
+                
+                {/* Botón de búsqueda */}
+                <TouchableOpacity
+                  style={styles.searchButton}
+                  onPress={buscarDireccion}
+                  disabled={!direccion.trim() || searching}
+                >
+                  {searching ? (
+                    <ActivityIndicator color="#009245" size="small" />
+                  ) : (
+                    <Ionicons name="search-outline" size={22} color="#009245" />
+                  )}
+                </TouchableOpacity>
+                
+                {/* Botón de mapa */}
                 <TouchableOpacity
                   style={styles.mapButton}
                   onPress={openMap}
@@ -540,7 +864,7 @@ export default function AddPublication() {
                     style={styles.priceTextInput}
                     placeholder="Min."
                     value={precioMin}
-                    onChangeText={setPrecioMin}
+                    onChangeText={(text) => setPrecioMin(formatearPrecio(desformatearPrecio(text)))}
                     keyboardType="numeric"
                   />
                 </View>
@@ -550,7 +874,7 @@ export default function AddPublication() {
                     style={styles.priceTextInput}
                     placeholder="Max."
                     value={precioMax}
-                    onChangeText={setPrecioMax}
+                    onChangeText={(text) => setPrecioMax(formatearPrecio(desformatearPrecio(text)))}
                     keyboardType="numeric"
                   />
                 </View>
@@ -661,6 +985,52 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
+  // Estilos para los nuevos selectores numéricos
+  numericSelectorContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginHorizontal: wp("2%"),
+    marginVertical: hp("1%"),
+    flex: 1,
+  },
+  numericSelectorTitle: {
+    fontSize: wp("3.8%"),
+    color: "#333333",
+    marginBottom: hp("1%"),
+    fontWeight: "500",
+  },
+  numericSelectorControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: "#F5F5F5",
+    borderRadius: 25,
+    paddingHorizontal: wp("2%"),
+    paddingVertical: hp("0.5%"),
+    width: "100%",
+  },
+  numericButton: {
+    width: wp("8%"),
+    height: wp("8%"),
+    borderRadius: wp("4%"),
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#EEEEEE",
+  },
+  numericValue: {
+    fontSize: wp("5%"),
+    fontWeight: "600",
+    color: "#333333",
+    paddingHorizontal: wp("3%"),
+  },
+  detailsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: hp("1%"),
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -713,6 +1083,30 @@ const styles = StyleSheet.create({
     color: "#888888",
     marginTop: 8,
     fontSize: wp("3.5%"),
+  },
+  // Nuevos estilos para el indicador de progreso
+  progressContainer: {
+    height: hp("2%"),
+    backgroundColor: "#F0F0F0",
+    borderRadius: 10,
+    marginBottom: hp("2%"),
+    overflow: "hidden",
+    position: "relative",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#009245",
+    borderRadius: 10,
+  },
+  progressText: {
+    position: "absolute",
+    right: 5,
+    top: 0,
+    bottom: 0,
+    textAlignVertical: "center",
+    fontSize: wp("3%"),
+    color: "#333",
+    fontWeight: "bold",
   },
   sectionContainer: {
     marginBottom: hp("2%"),
@@ -775,6 +1169,18 @@ const styles = StyleSheet.create({
     flex: 1,
     height: hp("6%"),
     fontSize: wp("4%"),
+  },
+  // Nuevo estilo para el botón de búsqueda
+  searchButton: {
+    width: hp("6%"),
+    height: hp("6%"),
+    borderRadius: hp("3%"),
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: wp("2%"),
+    borderWidth: 1,
+    borderColor: "#DDDDDD",
   },
   mapButton: {
     width: hp("6%"),
