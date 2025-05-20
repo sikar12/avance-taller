@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth"; // Añadido signOut
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
 const IconMenuButton = () => {
@@ -128,6 +128,10 @@ const IconMenuButton = () => {
           }
         } catch (error) {
           console.error(`Error al buscar en ${collectionName}:`, error);
+          Alert.alert(
+            "Error al cargar datos", 
+            `No se pudieron obtener tus datos de usuario desde ${collectionName}. Por favor, intenta nuevamente.`
+          );
         }
       }
       
@@ -146,6 +150,21 @@ const IconMenuButton = () => {
     }
   };
 
+  // Función para cerrar sesión (añadida)
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      setMenuVisible(false);
+      // Navegar a la pantalla de login
+      navigation.navigate("Homelogg");
+      Alert.alert("Sesión cerrada", "Has cerrado sesión correctamente");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      Alert.alert("Error", "No se pudo cerrar la sesión: " + error.message);
+    }
+  };
+
   const toggleMenu = () => {
     if (!isMenuVisible) {
       fetchUserData();
@@ -155,6 +174,25 @@ const IconMenuButton = () => {
 
   const handleNavigation = (screenName) => {
     setMenuVisible(false);
+    
+    // Manejar cierre de sesión (añadido)
+    if (screenName === "logout") {
+      Alert.alert(
+        "Cerrar sesión",
+        "¿Estás seguro que deseas cerrar sesión?",
+        [
+          {
+            text: "Cancelar",
+            style: "cancel"
+          },
+          {
+            text: "Sí, cerrar sesión",
+            onPress: handleLogout
+          }
+        ]
+      );
+      return;
+    }
     
     // Navegar a la pantalla correspondiente
     if (screenName === "Porfileseting") {
@@ -175,14 +213,15 @@ const IconMenuButton = () => {
     }
   };
 
-  // Opciones del menú con sus iconos
+  // Opciones del menú con sus iconos (Añadido logout)
   const menuOptions = [
     { id: 1, title: "Mi perfil", icon: "person-outline", screen: "Porfileseting" },
     { id: 2, title: "Mis publicaciones", icon: "list-outline", screen: "MyPublications" },
     { id: 3, title: "Añadir publicación", icon: "add-circle-outline", screen: "AddPublication" },
     { id: 4, title: "Agenda", icon: "calendar-outline", screen: "Meeting_date" },
     { id: 5, title: "Agentes", icon: "people-outline", screen: "Employed" },
-    { id: 6, title: "Configuración", icon: "settings-outline", screen: "Settings" }
+    { id: 6, title: "Configuración", icon: "settings-outline", screen: "Settings" },
+    { id: 7, title: "Cerrar sesión", icon: "log-out-outline", screen: "logout" } // Añadida opción de logout
   ];
 
   return (
@@ -227,11 +266,23 @@ const IconMenuButton = () => {
                 {menuOptions.map((option) => (
                   <TouchableOpacity 
                     key={option.id} 
-                    style={styles.menuItem}
+                    style={[
+                      styles.menuItem,
+                      option.screen === "logout" ? styles.logoutMenuItem : null // Estilo condicional para logout
+                    ]}
                     onPress={() => handleNavigation(option.screen)}
                   >
-                    <Ionicons name={option.icon} size={24} color="#009245" />
-                    <Text style={styles.menuItemText}>{option.title}</Text>
+                    <Ionicons 
+                      name={option.icon} 
+                      size={24} 
+                      color={option.screen === "logout" ? "#CC0000" : "#009245"} 
+                    />
+                    <Text style={[
+                      styles.menuItemText,
+                      option.screen === "logout" ? styles.logoutText : null // Estilo condicional para texto logout
+                    ]}>
+                      {option.title}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -352,6 +403,15 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     color: "#333",
     fontWeight: "500",
+  },
+  // Estilos adicionales para el botón de cierre de sesión
+  logoutMenuItem: {
+    backgroundColor: "#FEE2E2",
+    borderWidth: 1,
+    borderColor: "#FFCDD2",
+  },
+  logoutText: {
+    color: "#CC0000",
   }
 });
 
